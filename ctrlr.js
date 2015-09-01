@@ -1,19 +1,3 @@
-function randI(a,b) {
-  return Math.floor((Math.random() * (b-a)) + a);
-}
-
-function randR(a,b) {
-  return Math.random() * (b-a) + a;
-}
-
-function vdot(vx, vy) {
-  var ret = 0.0
-  for (i = 0; i < vx.length; i++) {
-    ret += vx[i] * vy[i]
-  }
-  return ret
-}
-
 var CTRL = {
   run : function(boxA, boxB, time) {
     var f_finished = CTRL_F.run(boxA, boxB, time)

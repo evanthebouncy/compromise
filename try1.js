@@ -7,28 +7,26 @@ var Engine = Matter.Engine,
     Constraint = Matter.Constraint;
 var engine = null;
 
-function simulate() {
+function simulate(concrete_state, controller) {
   // create a fresh world
   World.clear(engine.world);
   Engine.clear(engine);
   engine.events = {}
-  clearCTRL();
-  // create two boxes and a ground
-//  var boxA = Bodies.rectangle(randI(50,750), 590, 50, 50, {restitution: 0.9});
-//  Body.setVelocity(boxA, {x: 10, y: -10})
-//
-//  var boxB = Bodies.rectangle(randI(25,750), randI(50,250), 50, 50, {isStatic:true});
-//  var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+//  clearCTRL();
 
   // add all of the bodies to the world
-  World.add(engine.world, concretize_A(predicate_A.sample()));
+  World.add(engine.world, concrete_state)
 
   // bind the singular event that calls the controller at every update
   Events.on(engine, 'afterUpdate', function() {
     var time = engine.timing.timestamp;
-    var boxA = engine.world.bodies[0]
-    var boxB = engine.world.bodies[1]
-    CTRL.run(boxA, boxB, time);
+    var bodies = engine.world.bodies
+    if (!controller.terminate(concrete_state, time)) {
+    controller.act(bodies, time)
+    } else {
+    // do something here
+      console.log("terminated")
+    }
   });
 
   console.log(engine.world);
@@ -41,7 +39,9 @@ function Start() {
     Engine.run(engine);
   }
   $("#start_btn").click( function() {
-    simulate();
+    var controller_f = mk_ctrl_f([], predicate_B)
+    var concrete_state = concretize_A(predicate_A.sample()) 
+    simulate(concrete_state, controller_f);
   });
 }
 
