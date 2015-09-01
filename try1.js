@@ -7,13 +7,14 @@ var Engine = Matter.Engine,
     Constraint = Matter.Constraint;
 var engine = null;
 
-function simulate(concrete_state, controller) {
-  // create a fresh world
+// clear the world of all objects and events
+function clear_world() {
   World.clear(engine.world);
   Engine.clear(engine);
   engine.events = {}
-//  clearCTRL();
+}
 
+function simulate(concrete_state, controller, term_cb_obj, cb_fun_name) {
   // add all of the bodies to the world
   World.add(engine.world, concrete_state)
 
@@ -26,6 +27,8 @@ function simulate(concrete_state, controller) {
     } else {
     // do something here
       console.log("terminated")
+      clear_world()
+      term_cb_obj[cb_fun_name]()
     }
   });
 
@@ -40,8 +43,12 @@ function Start() {
   }
   $("#start_btn").click( function() {
     var controller_f = mk_ctrl_f([], predicate_B)
-    var concrete_state = concretize_A(predicate_A.sample()) 
-    simulate(concrete_state, controller_f);
+    // var concrete_state = abstract_state_A.concretize(predicate_A.sample()) 
+    // simulate(concrete_state, controller_f, function(){});
+    var measurer = mk_measurer(abstract_state_A, abstract_state_B, 
+                               predicate_A, predicate_B,
+                               controller_f, 10)
+    measurer.run1()
   });
 }
 

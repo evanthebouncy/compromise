@@ -6,20 +6,21 @@
 // for the precondition A
 
 // abstract state is of form [deltaX, deltaY] between boxB and boxA
-function abstract_A(boxA, boxB) {
-  var xy = Matter.Vector.sub(boxB.position, boxA.position)
-  return [xy.x, xy.y]
-}
+var abstract_state_A = {
+  abstraction : function (boxA, boxB) {
+    var xy = Matter.Vector.sub(boxB.position, boxA.position)
+    return [xy.x, xy.y]
+  },
 
-function concretize_A(diff_vect) {
-  var boxA = Bodies.rectangle(400, 590, 50, 50, {restitution: 0.7});
-  var bX = diff_vect[0] + 400
-  var bY = diff_vect[1] + 590
-  var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
-  var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
-  return [boxA, boxB, ground]
+  concretize : function(diff_vect) {
+    var boxA = Bodies.rectangle(400, 590, 50, 50, {restitution: 0.7});
+    var bX = diff_vect[0] + 400
+    var bY = diff_vect[1] + 590
+    var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
+    var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+    return [boxA, boxB, ground]
+  }
 }
-
 // a predicate is actually an object with a function to decide of an abstract state
 // meets the predicate, and a function to create a sample point in an abstract state
 var predicate_A = {
@@ -46,22 +47,23 @@ var predicate_A = {
 // for the condition B
 
 // abstract state is of form [deltaX, deltaY, a.y_velocity] between boxB and boxA
-function abstract_B(boxA, boxB) {
-  var xy = Matter.Vector.sub(boxB.position, boxA.position)
-  var y_velocity = boxA.velocity.y
-  return [xy.x, xy.y, y_velocity]
-}
+var abstract_state_B = {
+  abstraction : function(boxA, boxB) {
+    var xy = Matter.Vector.sub(boxB.position, boxA.position)
+    var y_velocity = boxA.velocity.y
+    return [xy.x, xy.y, y_velocity]
+  },
 
-function concretize_B(state_B_vect) {
-  var boxA = Bodies.rectangle(400, 50, 50, 50, {restitution: 0.7});
-  Body.setVelocity(boxA, {x: 0.0, y: state_B_vect[2]})
-  var bX = state_B_vect[0] + 400
-  var bY = state_B_vect[1] + 50
-  var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
-  var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
-  return [boxA, boxB, ground]
+  concretize : function (state_B_vect) {
+    var boxA = Bodies.rectangle(400, 50, 50, 50, {restitution: 0.7});
+    Body.setVelocity(boxA, {x: 0.0, y: state_B_vect[2]})
+    var bX = state_B_vect[0] + 400
+    var bY = state_B_vect[1] + 50
+    var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
+    var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+    return [boxA, boxB, ground]
+  }
 }
-
 var predicate_B = {
   // params are height_diff and side_diff
   w_diff_range : [75, 300],
@@ -95,22 +97,23 @@ var predicate_B = {
 // for the postcondition C
 
 // abstract state is of the form [deltaX, deltaY, a.velocity] 
-function abstract_C(boxA, boxB) {
-  var xy = Matter.Vector.sub(boxB.position, boxA.position)
-  var velocity = boxA.velocity
-  return [xy.x, xy.y, velocity.x, velocity.y]
-}
+var abstract_state_C = {
+  abstraction : function(boxA, boxB) {
+    var xy = Matter.Vector.sub(boxB.position, boxA.position)
+    var velocity = boxA.velocity
+    return [xy.x, xy.y, velocity.x, velocity.y]
+  },
 
-function concretize_C(state_C_vect) {
-  var boxA = Bodies.rectangle(400, 300, 50, 50, {restitution: 0.7});
-  Body.setVelocity(boxA, {x: state_C_vect[2], y: state_C_vect[3]})
-  var bX = state_C_vect[0] + 400
-  var bY = state_C_vect[1] + 300
-  var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
-  var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
-  return [boxA, boxB, ground]
+  concretize : function(state_C_vect) {
+    var boxA = Bodies.rectangle(400, 300, 50, 50, {restitution: 0.7});
+    Body.setVelocity(boxA, {x: state_C_vect[2], y: state_C_vect[3]})
+    var bX = state_C_vect[0] + 400
+    var bY = state_C_vect[1] + 300
+    var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
+    var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+    return [boxA, boxB, ground]
+  }
 }
-
 var predicate_C = {
   // params are height_diff and side_diff
   w_diff_range : [-24, 24],
