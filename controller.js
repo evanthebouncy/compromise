@@ -4,7 +4,7 @@
 function mk_ctrl_f(params, pred) {
   // default params for testing
   if (params.length == 0) {
-    params  = [0.0001, 0.0003, 0.000, -0.9, -0.9, 1.0]
+    params  = [-0.0005, 0.0005, 0.000, 1.9, -1.9, 1.0]
   }
   var ctrl_f = {
     term_time : 0,
@@ -17,19 +17,20 @@ function mk_ctrl_f(params, pred) {
     },
     // apply force and set terminate time
     apply_force : function (bodies, time) {
+      console.log("HA HA")
       var boxA = bodies[0]
       var boxB = bodies[1]
       var abs_state = abstract_state_A.abstraction(boxA, boxB)
+      console.log("abs state ", abs_state)
       var action_state = [abs_state[0], abs_state[1], 1.0]
       var th_J = [this.params[0], this.params[1], this.params[2]]
       var th_T = [this.params[3], this.params[4], this.params[5]]
       var force = {x: 0.0, y: vdot(th_J, action_state)}  
-      console.log("paramz ", this.params, params)
-      console.log(action_state, th_J, force)
       var delay = vdot(th_T, action_state)
       // modify states
       Body.applyForce(boxA, boxA.position, force)
       this.term_time = time + delay
+      console.log("time, delay ", time, delay)
     },
     // given a state, what should I act on? state is given as engine.world.bodies
     act : function (bodies, time) {
@@ -44,9 +45,11 @@ function mk_ctrl_f(params, pred) {
       var boxB = bodies[1]
       var abs_state = abstract_state_B.abstraction(boxA, boxB)
       if (this.pred.sat(abs_state)) {
+        console.log("term: sat post condition")
         return true
       }
       if (this.has_run && this.term_time < time) {
+        console.log("term: timeout")
         return true
       }
       return false

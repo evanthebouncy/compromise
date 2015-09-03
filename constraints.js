@@ -34,6 +34,14 @@ var predicate_A = {
     return in_rng(diffX, this.w_diff_range) && in_rng(diffY, this.h_diff_range)
   },
 
+  soft_sat : function(vect) {
+    var diffX = Math.abs(vect[0])
+    var diffY = -1 * vect[1]
+    return Math.min (soft_in_rng(diffX, this.w_diff_range), 
+                     soft_in_rng(diffY, this.h_diff_range)
+                    )
+  },
+
   sample : function() {
     var diffX_mag = randI(this.w_diff_range[0], this.w_diff_range[1])
     var diffX_sign = randI(0,100) > 50 ? 1 : -1
@@ -82,6 +90,17 @@ var predicate_B = {
            in_rng(state_B_vect[2], velo_y_range)
   },
 
+  soft_sat : function(state_B_vect) {
+    var param = this.param
+    var diffX = Math.abs(state_B_vect[0])
+    var diffY = param[0] * diffX + 30
+    var h_diff_range = [diffY - param[1], diffY + param[1]]
+    var velo_y_range = [-1 * param[2], param[2]]
+    return Math.min (soft_in_rng(state_B_vect[1], h_diff_range), 
+                     soft_in_rng(state_B_vect[2], velo_y_range)
+                    )
+  },
+
   sample : function() {
     var param = this.param
     var diffX_mag = randI(this.w_diff_range[0], this.w_diff_range[1])
@@ -125,6 +144,14 @@ var predicate_C = {
            in_rng(state_B_vect[1], h_diff_range) &&
            in_rng(state_B_vect[2], v_diff_range) &&
            in_rng(state_B_vect[3], v_diff_range)
+  },
+
+  soft_sat : function(state_C_vect) {
+    return Math.min( soft_in_rng(state_B_vect[0], w_diff_range),
+                     soft_in_rng(state_B_vect[1], h_diff_range),
+                     soft_in_rng(state_B_vect[2], v_diff_range),
+                     soft_in_rng(state_B_vect[3], v_diff_range)
+            )
   },
 
   sample : function() {
