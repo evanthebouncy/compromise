@@ -12,10 +12,12 @@ var abstract_state_A = {
     return [xy.x, xy.y]
   },
 
-  concretize : function(diff_vect) {
-    var boxA = Bodies.rectangle(400, 590, 50, 50, {restitution: 0.7});
-    var bX = diff_vect[0] + 400
-    var bY = diff_vect[1] + 590
+  concretize : function(abs_vect) {
+    var aX = 50
+    var aY = 590
+    var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.7});
+    var bX = abs_vect[0] + aX
+    var bY = abs_vect[1] + aY
     var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
     var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
     return [boxA, boxB, ground]
@@ -25,27 +27,21 @@ var abstract_state_A = {
 // meets the predicate, and a function to create a sample point in an abstract state
 var predicate_A = {
   // params are height_diff and side_diff
-  h_diff_range : [50, 500],
-  w_diff_range : [75, 300],
+  w_diff_range : [75, 600],
+  h_diff_range : [50, 400],
   
-  sat : function(vect) {
-    var diffX = Math.abs(vect[0])
-    var diffY = -1 * vect[1]
-    return in_rng(diffX, this.w_diff_range) && in_rng(diffY, this.h_diff_range)
+  sat : function(abs_vect) {
+    return in_rng(abs_vect[0], this.w_diff_range) && in_rng(-1*abs_vect[1], this.h_diff_range)
   },
 
   soft_sat : function(vect) {
-    var diffX = Math.abs(vect[0])
-    var diffY = -1 * vect[1]
-    return Math.min (soft_in_rng(diffX, this.w_diff_range), 
-                     soft_in_rng(diffY, this.h_diff_range)
+    return Math.min (soft_in_rng(abs_vect[0], this.w_diff_range), 
+                     soft_in_rng(-1 * abs_vect[1], this.h_diff_range)
                     )
   },
 
   sample : function() {
-    var diffX_mag = randI(this.w_diff_range[0], this.w_diff_range[1])
-    var diffX_sign = randI(0,100) > 50 ? 1 : -1
-    var diffX = diffX_sign * diffX_mag
+    var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
     var diffY = -1 * randI(this.h_diff_range[0], this.h_diff_range[1])
     return [diffX, diffY]
   }
@@ -63,10 +59,12 @@ var abstract_state_B = {
   },
 
   concretize : function (state_B_vect) {
-    var boxA = Bodies.rectangle(400, 50, 50, 50, {restitution: 0.7});
+    var aX = 50
+    var aY = 250
+    var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.7});
     Body.setVelocity(boxA, {x: 0.0, y: state_B_vect[2]})
-    var bX = state_B_vect[0] + 400
-    var bY = state_B_vect[1] + 50
+    var bX = state_B_vect[0] + aX
+    var bY = state_B_vect[1] + aY
     var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
     var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
     return [boxA, boxB, ground]
@@ -74,18 +72,18 @@ var abstract_state_B = {
 }
 var predicate_B = {
   // params are height_diff and side_diff
-  w_diff_range : [75, 300],
+  w_diff_range : [75, 600],
   // this param is the diff multiplier, 
   // diff bound,
-  // and the y_velocity_bound
-  param : [0.3, 10, 3.7],
+  // and the y_velocity_bounds
+  param : [0.3, 10, -3.7, 3.7],
   
   sat : function(state_B_vect) {
     var param = this.param
     var diffX = Math.abs(state_B_vect[0])
     var diffY = param[0] * diffX + 30
     var h_diff_range = [diffY - param[1], diffY + param[1]]
-    var velo_y_range = [-1 * param[2], param[2]]
+    var velo_y_range = [param[2], param[3]]
     return in_rng(state_B_vect[1], h_diff_range) && 
            in_rng(state_B_vect[2], velo_y_range)
   },
@@ -95,19 +93,16 @@ var predicate_B = {
     var diffX = Math.abs(state_B_vect[0])
     var diffY = param[0] * diffX + 30
     var h_diff_range = [diffY - param[1], diffY + param[1]]
-    var velo_y_range = [-1 * param[2], param[2]]
-    return Math.min (soft_in_rng(state_B_vect[1], h_diff_range), 
-                     soft_in_rng(state_B_vect[2], velo_y_range)
-                    )
+    var velo_y_range = [param[2], param[3]]
+    return Math.min (soft_in_rng(state_B_vect[1], h_diff_range),
+                     soft_in_rng(state_B_vect[2], velo_y_range))
   },
 
   sample : function() {
     var param = this.param
-    var diffX_mag = randI(this.w_diff_range[0], this.w_diff_range[1])
-    var diffX_sign = randI(0,100) > 50 ? 1 : -1
-    var diffX = diffX_sign * diffX_mag
+    var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
     var diffY = param[0] * diffX_mag + 30 + randI(-1*param[1], param[1])
-    var veloY = randR(-1*param[2], param[2])
+    var veloY = randR(param[2], param[3])
     return [diffX, diffY, veloY]
   }
 }
