@@ -7,7 +7,9 @@
 
 // abstract state is of form [deltaX, deltaY] between boxB and boxA
 var abstract_state_A = {
-  abstraction : function (boxA, boxB) {
+  abstraction : function (bodies) {
+    var boxA = bodies[0]
+    var boxB = bodies[1]
     var xy = Matter.Vector.sub(boxB.position, boxA.position)
     return [xy.x, xy.y]
   },
@@ -52,7 +54,9 @@ var predicate_A = {
 
 // abstract state is of form [deltaX, deltaY, a.y_velocity] between boxB and boxA
 var abstract_state_B = {
-  abstraction : function(boxA, boxB) {
+  abstraction : function(bodies) {
+    var boxA = bodies[0]
+    var boxB = bodies[1]
     var xy = Matter.Vector.sub(boxB.position, boxA.position)
     var y_velocity = boxA.velocity.y
     return [xy.x, xy.y, y_velocity]
@@ -101,7 +105,7 @@ var predicate_B = {
   sample : function() {
     var param = this.param
     var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
-    var diffY = param[0] * diffX_mag + 30 + randI(-1*param[1], param[1])
+    var diffY = param[0] * diffX + 30 + randI(-1*param[1], param[1])
     var veloY = randR(param[2], param[3])
     return [diffX, diffY, veloY]
   }
@@ -112,7 +116,9 @@ var predicate_B = {
 
 // abstract state is of the form [deltaX, deltaY, a.velocity] 
 var abstract_state_C = {
-  abstraction : function(boxA, boxB) {
+  abstraction : function(bodies) {
+    var boxA = bodies[0]
+    var boxB = bodies[1]
     var xy = Matter.Vector.sub(boxB.position, boxA.position)
     var velocity = boxA.velocity
     return [xy.x, xy.y, velocity.x, velocity.y]

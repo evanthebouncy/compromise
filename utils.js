@@ -1,4 +1,12 @@
 // ulilities
+function range(start, end) {
+  var foo = [];
+  for (var i = start; i <= end; i++) {
+      foo.push(i);
+  }
+  return foo;
+}
+
 function in_rng(x,rng) {
   return rng[0] <= x && x <= rng[1]
 }
@@ -29,4 +37,10 @@ function vdot(vx, vy) {
   return ret
 }
 
-
+function vadd(vx, vy) {
+  ret = []
+  for (var i = 0; i < vx.length; i++) {
+    ret.push(vx[i] + vy[i])
+  }
+  return ret
+}
