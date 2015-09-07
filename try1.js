@@ -97,10 +97,12 @@ function Start() {
     engine = Engine.create(document.getElementById('canvas-container'));
     runner = Runner.create()
   }
+
   $("#animate_f").click( function() {
-    var controller_f = mk_ctrl_f([-0.0003274556762631983, 0.0001236041985778138, 0.003317698162607849], predicate_B)
-    var the_state = abstract_state_A.concretize(predicate_A.sample())
-    simulate_and_render(the_state, controller_f, 8000, true)
+    var abstr_a = predicate_A.sample()
+    var the_state_a = abstract_state_A.concretize(abstr_a)
+    var controller_f = mk_ctrl_f([-0.00040620602679904556, 0.00045368863208219415, 0.0003372194013558324], predicate_B)
+    simulate_and_render(the_state_a, controller_f, 8000, true)
   });
   $("#animate_g").click( function() {
     var controller_g = mk_ctrl_g([6,6,6,6,6,6], predicate_C)

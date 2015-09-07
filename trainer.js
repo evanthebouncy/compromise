@@ -1,8 +1,10 @@
 // create a measurer for fitness, generate a fixed number of test cases
 function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
   var test_cases = []
+  // huge bug fix, we gotta push the non-concretized version,
+  // the conc version is modified during simulation causing bugs
   for (var i = 0; i < test_n; i++) {
-    test_cases.push(abstr_pre.concretize(pred_pre.sample()))
+    test_cases.push(pred_pre.sample())
   }
   function get_test_score(bodies) {
     var abstr_state = abstr_post.abstraction(bodies)
@@ -12,7 +14,7 @@ function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
   function measure(ctrl) {
     var ret = 0.0
     for (var i = 0; i < test_n; i++) {
-      var init_state = test_cases[i]
+      var init_state = abstr_pre.concretize(test_cases[i])
       var final_state = simulate(init_state, ctrl, 5000)
       ret += get_test_score(final_state)
     }
@@ -23,8 +25,8 @@ function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
 
 function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_gen) {
   var immortal = []
-  var pool_max_size = 20
-  var spawn_num = 2
+  var pool_max_size = 40
+  var spawn_num = 3
   var pool = []
   var big_pool_fitness = []
   // populate the pool of random controllers
