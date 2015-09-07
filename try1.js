@@ -18,12 +18,15 @@ function clear_world() {
 }
 
 // animate until timeout or termination
-function animate(ctrl, timeout, terminate_on_ctrl) {
+function animate(ctrl, timeout, terminate_on_ctrl, term_callback) {
   var n = timeout / deltaT
   var cur_frame = 0
   function animate1() {
     var cur_state = engine.world.bodies
-    if (ctrl.terminate(cur_state) && terminate_on_ctrl) {return}
+    if (ctrl.terminate(cur_state) && terminate_on_ctrl) {
+      term_callback(cur_state)
+      return;
+    }
     if (cur_frame < n) {
       Runner.tick(runner, engine, deltaT)
       cur_frame += 1
@@ -36,7 +39,8 @@ function animate(ctrl, timeout, terminate_on_ctrl) {
 }
 
 // for displaying a particular controller's behaviour
-function simulate_and_render(concrete_state, controller, timeout, terminate_on_ctrl) {
+function simulate_and_render(concrete_state, controller, timeout, 
+                             terminate_on_ctrl, term_callback) {
   // clear the world and controller
   clear_world()
   controller.clear()
@@ -49,7 +53,7 @@ function simulate_and_render(concrete_state, controller, timeout, terminate_on_c
     var bodies = engine.world.bodies
     controller.act(bodies)
   });
-  animate(controller, 8000, terminate_on_ctrl)
+  animate(controller, 8000, terminate_on_ctrl, term_callback)
 }
 
 // simulate the current controller behaviour on a concrete state
@@ -98,39 +102,41 @@ function Start() {
     runner = Runner.create()
   }
 
+  // initialize some starting points
+  var pred_B = mk_pred_B([6,6,6,6,6,6])
+  console.log("initial pred_B guess: ", pred_B.params)
+  var ctrl_f = mk_ctrl_f([6,6,6,6,6,6],pred_B)
+  var ctrl_g = mk_ctrl_g([6,6,6,6,6,6],predicate_C) 
+
   $("#animate_f").click( function() {
     var abstr_a = predicate_A.sample()
     var the_state_a = abstract_state_A.concretize(abstr_a)
-    var controller_f = mk_ctrl_f([-0.00040620602679904556, 0.00045368863208219415, 0.0003372194013558324], predicate_B)
-    simulate_and_render(the_state_a, controller_f, 8000, true)
+    var term_cb_f = function(cur_state) {
+      var score = pred_B.soft_sat(abstract_state_B.abstraction(cur_state))
+      console.log("score ", score)
+    }
+    simulate_and_render(the_state_a, ctrl_f, 8000, true, term_cb_f)
   });
   $("#animate_g").click( function() {
-    var controller_g = mk_ctrl_g([6,6,6,6,6,6], predicate_C)
-    var the_state = abstract_state_B.concretize(predicate_B.sample())
-    simulate_and_render(the_state, controller_g, 8000, true)
+    var abstr_b = pred_B.sample()
+    var the_state_b = abstract_state_B.concretize(abstr_b)
+    var term_cb_f = function(cur_state) {
+      var score = predicate_C.soft_sat(abstract_state_C.abstraction(cur_state))
+      console.log("score ", score)
+    }
+    simulate_and_render(the_state_b, ctrl_g, 8000, true, term_cb_f)
   });
   $("#animate_fg").click( function() {
-    var controller_f = mk_ctrl_f([6,6,6,6,6,6], predicate_B)
-    var controller_g = mk_ctrl_g([6,6,6,6,6,6], predicate_C)
-    var controller_fg = mk_ctrl_fg(controller_f, controller_g)
-    var the_state = abstract_state_A.concretize(predicate_A.sample())
-    simulate_and_render(the_state, controller_fg, 8000, false)
+    var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
+    var abstr_a = predicate_A.sample()
+    var the_state_a = abstract_state_A.concretize(abstr_a)
+    simulate_and_render(the_state_a, ctrl_fg, 8000, false, function(x){})
   });
   $("#train_f").click( function() {
-    var top_performers = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, predicate_B, 10)
-    var measure = mk_measurer(abstract_state_A, predicate_A, abstract_state_B, predicate_B,100)
-    for (var i = 0; i < top_performers.length; i++) {
-      var cand = top_performers[i]
-      console.log(measure(cand))
-    }
+    ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 5)
   });
   $("#train_g").click( function() {
-    var top_performers = train_ctrl(mk_ctrl_g, abstract_state_B, predicate_B, abstract_state_C, predicate_C, 10)
-    var measure = mk_measurer(abstract_state_B, predicate_B, abstract_state_C, predicate_C,100)
-    for (var i = 0; i < top_performers.length; i++) {
-      var cand = top_performers[i]
-      console.log(measure(cand))
-    }
+    ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 5)
   });
 }
 

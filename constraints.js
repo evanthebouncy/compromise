@@ -74,43 +74,75 @@ var abstract_state_B = {
     return [boxA, boxB, ground]
   }
 }
-var predicate_B = {
-  // params are height_diff and side_diff
-  w_diff_range : [75, 600],
-  // this param is the diff multiplier, 
-  // diff bound,
-  // and the y_velocity_bounds
-  param : [0.3, 10, -3.7, 3.7],
-  
-  sat : function(state_B_vect) {
-    var param = this.param
-    var diffX = Math.abs(state_B_vect[0])
-    var diffY = param[0] * diffX + 30
-    var h_diff_range = [diffY - param[1], diffY + param[1]]
-    var velo_y_range = [param[2], param[3]]
-    return in_rng(state_B_vect[1], h_diff_range) && 
-           in_rng(state_B_vect[2], velo_y_range)
-  },
 
-  soft_sat : function(state_B_vect) {
-    var param = this.param
-    var diffX = Math.abs(state_B_vect[0])
-    var diffY = param[0] * diffX + 30
-    var h_diff_range = [diffY - param[1], diffY + param[1]]
-    var velo_y_range = [param[2], param[3]]
-    return Math.min (soft_in_rng(state_B_vect[1], h_diff_range),
-                     soft_in_rng(state_B_vect[2], velo_y_range))
-  },
-
-  sample : function() {
-    var param = this.param
-    var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
-    var diffY = param[0] * diffX + 30 + randI(-1*param[1], param[1])
-    var veloY = randR(param[2], param[3])
-    return [diffX, diffY, veloY]
+// make predicate b
+function mk_pred_B(params) {
+  if (params.length == 6) {
+    params = [0.3, 10, -3.7, 3.7]
   }
-}
+  if (params.length == 0) {
+    var meow1 = randR(-5.0, 5.0)
+    var meow2 = randR(-5.0, 5.0)
+    params = [ randR(0.0, 0.8),
+               randR(-50, 50),
+               Math.min(meow1, meow2),
+               Math.max(meow1, meow2)
+             ]
+  }
+  var predicate_B = {
+    // params are height_diff and side_diff
+    w_diff_range : [75, 600],
+    // this param is the diff multiplier, 
+    // diff bound,
+    // and the y_velocity_bounds
+    params : params,
 
+    spawn_child : function() {
+      var delta_vect = [ randR(-0.05, 0.05),
+                         randR(-10, 10),
+                         randR(-0.5, 0.5),
+                         randR(-0.5, 0.5)
+                       ]
+      var spawn_params = vadd(delta_vect, this.params)
+      if (spawm_params[2] > spawn_params[3]){
+        var meow1 = spawn_params[2]
+        var meow2 = spawn_params[3]
+        spawn_params[2] = Math.min(meow1, meow2)
+        spawn_params[3] = Math.max(meow1, meow2)
+      }
+      return mk_pred_B(spawn_params)
+    },
+    
+    sat : function(state_B_vect) {
+      var params = this.params
+      var diffX = Math.abs(state_B_vect[0])
+      var diffY = params[0] * diffX + 30
+      var h_diff_range = [diffY - params[1], diffY + params[1]]
+      var velo_y_range = [params[2], params[3]]
+      return in_rng(state_B_vect[1], h_diff_range) && 
+             in_rng(state_B_vect[2], velo_y_range)
+    },
+
+    soft_sat : function(state_B_vect) {
+      var params = this.params
+      var diffX = Math.abs(state_B_vect[0])
+      var diffY = params[0] * diffX + 30
+      var h_diff_range = [diffY - params[1], diffY + params[1]]
+      var velo_y_range = [params[2], params[3]]
+      return Math.min (soft_in_rng(state_B_vect[1], h_diff_range),
+                       soft_in_rng(state_B_vect[2], velo_y_range))
+    },
+
+    sample : function() {
+      var params = this.params
+      var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
+      var diffY = params[0] * diffX + 30 + randI(-1*params[1], params[1])
+      var veloY = randR(params[2], params[3])
+      return [diffX, diffY, veloY]
+    }
+  }
+  return predicate_B
+}
 
 // for the postcondition C
 

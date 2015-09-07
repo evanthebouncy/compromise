@@ -24,8 +24,7 @@ function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
 }
 
 function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_gen) {
-  var immortal = []
-  var pool_max_size = 40
+  var pool_max_size = 20
   var spawn_num = 3
   var pool = []
   var big_pool_fitness = []
@@ -40,7 +39,7 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
     console.log("creating big pool")
     // make babies and measure fitness
     big_pool_fitness = []
-    var measure = mk_measurer(abstr_pre, pred_pre, abstr_post, pred_post, 100)
+    var measure = mk_measurer(abstr_pre, pred_pre, abstr_post, pred_post, 50)
     for (var i = 0; i < pool_max_size; i++) {
       var mom = pool[i]
       big_pool_fitness.push([measure(mom), mom])
@@ -59,8 +58,7 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
       pool.push(big_pool_fitness[k][1])
     }
     console.log("top fitness: ", measure(pool[0]), " params: ", pool[0].params)
-    immortal.push(pool[0])
   }
-  return immortal
+  return pool[0]
 }
 
