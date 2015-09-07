@@ -148,10 +148,10 @@ var predicate_C = {
   },
 
   soft_sat : function(state_C_vect) {
-    return Math.min( soft_in_rng(state_B_vect[0], w_diff_range),
-                     soft_in_rng(state_B_vect[1], h_diff_range),
-                     soft_in_rng(state_B_vect[2], v_diff_range),
-                     soft_in_rng(state_B_vect[3], v_diff_range)
+    return Math.min( soft_in_rng(state_C_vect[0], this.w_diff_range),
+                     soft_in_rng(state_C_vect[1], this.h_diff_range),
+                     soft_in_rng(state_C_vect[2], this.v_diff_range),
+                     soft_in_rng(state_C_vect[3], this.v_diff_range)
             )
   },
 

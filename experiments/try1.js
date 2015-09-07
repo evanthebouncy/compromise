@@ -23,7 +23,8 @@ function animateN(n) {
   animate()
 }
 
-function simulate_no_render(delayzz) {
+function simulate_no_render(total_time) {
+  delayzz = 1000 / 60
   World.clear(engine.world);
   Engine.clear(engine);
   engine.events = {}
@@ -32,13 +33,12 @@ function simulate_no_render(delayzz) {
   // var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
   World.add(engine.world, [boxA]);
 
-  console.log(boxA.position)
-  var total_time = 5000
+  var start_time = new Date().getTime()
   var num_step = total_time / delayzz
   for (var i = 0; i < num_step; i++ ) {
     Engine.update(engine, delayzz)
   }
-  console.log(boxA.position)
+  console.log("run time: ", new Date().getTime() - start_time)
 }
 
 function Start() {
@@ -51,12 +51,10 @@ function Start() {
     // })
   }
   $("#start_btn").click( function() {
-    simulate_no_render(2)
-    simulate_no_render(5)
-    simulate_no_render(10)
-    simulate_no_render(20)
-//    animateN(100)
-//    console.log("start animate")
+    for (var i = 0; i < 10000; i++) {
+      console.log("iteration ", i)
+      simulate_no_render(10000)
+    }
   });
 }
 
