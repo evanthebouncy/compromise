@@ -53,7 +53,7 @@ function simulate_and_render(concrete_state, controller, timeout,
     var bodies = engine.world.bodies
     controller.act(bodies)
   });
-  animate(controller, 8000, terminate_on_ctrl, term_callback)
+  animate(controller, timeout, terminate_on_ctrl, term_callback)
 }
 
 // simulate the current controller behaviour on a concrete state
@@ -108,6 +108,7 @@ function Start() {
   var ctrl_f = mk_ctrl_f([6,6,6,6,6,6],pred_B)
   var ctrl_g = mk_ctrl_g([6,6,6,6,6,6],predicate_C) 
 
+  // for visualizing the controller and the compsoed controller
   $("#animate_f").click( function() {
     var abstr_a = predicate_A.sample()
     var the_state_a = abstract_state_A.concretize(abstr_a)
@@ -130,13 +131,36 @@ function Start() {
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
     var abstr_a = predicate_A.sample()
     var the_state_a = abstract_state_A.concretize(abstr_a)
-    simulate_and_render(the_state_a, ctrl_fg, 8000, false, function(x){})
+    simulate_and_render(the_state_a, ctrl_fg, 2000, false, function(x){})
   });
-  $("#train_f").click( function() {
+
+  // for training
+  function train_f() {
+    console.log("# # # training f # # #")
     ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 5)
-  });
-  $("#train_g").click( function() {
+    console.log("# # # training f result: ", ctrl_f.params)
+  }
+  function train_g() {
+    console.log("# # # training g # # #")
     ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 5)
+    console.log("# # # training g result: ", ctrl_g.params)
+  }
+  function compromise() {
+    console.log("# # # compromising f and g # # #")
+    pred_B = train_constraint(mk_pred_B, abstract_state_A, predicate_A, ctrl_f,
+                              abstract_state_C, predicate_C, ctrl_g,
+                              abstract_state_B, 8)
+    console.log("# # # compromising f g result: ", pred_B.params)
+  }
+  $("#train_f").click( function() { train_f() });
+  $("#train_g").click( function() { train_g() });
+  $("#compromise").click( function() { compromise() });
+  $("#infinite_train").click( function() {
+    while(true) {
+      train_f()
+      train_g()
+      compromise()
+    }
   });
 }
 

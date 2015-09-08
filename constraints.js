@@ -17,7 +17,7 @@ var abstract_state_A = {
   concretize : function(abs_vect) {
     var aX = 50
     var aY = 590
-    var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.7});
+    var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.3});
     var bX = abs_vect[0] + aX
     var bY = abs_vect[1] + aY
     var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
@@ -29,8 +29,8 @@ var abstract_state_A = {
 // meets the predicate, and a function to create a sample point in an abstract state
 var predicate_A = {
   // params are height_diff and side_diff
-  w_diff_range : [75, 600],
-  h_diff_range : [50, 400],
+  w_diff_range : [100, 300],
+  h_diff_range : [200, 400],
   
   sat : function(abs_vect) {
     return in_rng(abs_vect[0], this.w_diff_range) && in_rng(-1*abs_vect[1], this.h_diff_range)
@@ -65,7 +65,7 @@ var abstract_state_B = {
   concretize : function (state_B_vect) {
     var aX = 50
     var aY = 250
-    var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.7});
+    var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.3});
     Body.setVelocity(boxA, {x: 0.0, y: state_B_vect[2]})
     var bX = state_B_vect[0] + aX
     var bY = state_B_vect[1] + aY
@@ -91,7 +91,7 @@ function mk_pred_B(params) {
   }
   var predicate_B = {
     // params are height_diff and side_diff
-    w_diff_range : [75, 600],
+    w_diff_range : [100, 300],
     // this param is the diff multiplier, 
     // diff bound,
     // and the y_velocity_bounds
@@ -99,12 +99,12 @@ function mk_pred_B(params) {
 
     spawn_child : function() {
       var delta_vect = [ randR(-0.05, 0.05),
-                         randR(-10, 10),
+                         randR(-5, 5),
                          randR(-0.5, 0.5),
                          randR(-0.5, 0.5)
                        ]
       var spawn_params = vadd(delta_vect, this.params)
-      if (spawm_params[2] > spawn_params[3]){
+      if (spawn_params[2] > spawn_params[3]){
         var meow1 = spawn_params[2]
         var meow2 = spawn_params[3]
         spawn_params[2] = Math.min(meow1, meow2)
@@ -157,7 +157,7 @@ var abstract_state_C = {
   },
 
   concretize : function(state_C_vect) {
-    var boxA = Bodies.rectangle(400, 300, 50, 50, {restitution: 0.7});
+    var boxA = Bodies.rectangle(400, 300, 50, 50, {restitution: 0.3});
     Body.setVelocity(boxA, {x: state_C_vect[2], y: state_C_vect[3]})
     var bX = state_C_vect[0] + 400
     var bY = state_C_vect[1] + 300

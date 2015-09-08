@@ -76,10 +76,10 @@ function mk_ctrl_g(params, post_cond) {
   }
   // random params for seeding
   if (params.length == 0) {
-    params = [ randR(-0.0005, 0.0005),
-               randR(-0.0005, 0.0005),
-               randR(-0.5, 0.5),
-               randR(-0.005, 0.005)
+    params = [ randR(0, 0.001),
+               randR(-0.001, 0),
+               randR(0, 0.01),
+               randR(-0.01, 0.01)
              ]
   }
   var ctrl_g = {
@@ -94,10 +94,10 @@ function mk_ctrl_g(params, post_cond) {
       this.terminated = false
     },
     spawn_child : function() {
-      var delta_vect = [ randR(-0.00005, 0.00005),
-                         randR(-0.00005, 0.00005),
-                         randR(-0.0005, 0.0005),
-                         randR(-0.0005, 0.0005)
+      var delta_vect = [ randR(-0.0001, 0.0001),
+                         randR(-0.0001, 0.0001),
+                         randR(-0.001, 0.001),
+                         randR(-0.001, 0.001)
                        ]
       var spawn_params = vadd(delta_vect, this.params)
       return mk_ctrl_g(spawn_params, post_cond)
