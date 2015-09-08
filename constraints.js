@@ -78,19 +78,22 @@ var abstract_state_B = {
 // make predicate b
 function mk_pred_B(params) {
   if (params.length == 6) {
-    params = [0.3, -3.7, 3.7]
+    params = [0.0, 0.3, -3.7, 3.7]
   }
   if (params.length == 0) {
-    var meow1 = randR(-5.0, 5.0)
-    var meow2 = randR(-5.0, 5.0)
-    params = [ randR(0.0, 0.8),
-               Math.min(meow1, meow2),
-               Math.max(meow1, meow2)
+    var slop1 = randR(-0.1, 0.5)
+    var slop2 = randR(-0.5, 0.5)
+    var speed1 = randR(-5.0, 5.0)
+    var speed2 = randR(-5.0, 5.0)
+    params = [ Math.min(slop1, slop2),
+               Math.max(slop1, slop2),
+               Math.min(speed1, speed2),
+               Math.max(speed1, speed2)
              ]
   }
   var predicate_B = {
     // the offset that's a constant for now
-    gap : 50,
+    gap : 60,
     // params are height_diff and side_diff
     w_diff_range : [100, 300],
     // this param is the diff multiplier, 
@@ -100,15 +103,22 @@ function mk_pred_B(params) {
 
     spawn_child : function() {
       var delta_vect = [ randR(-0.05, 0.05),
+                         randR(-0.05, 0.05),
                          randR(-0.5, 0.5),
                          randR(-0.5, 0.5)
                        ]
       var spawn_params = vadd(delta_vect, this.params)
-      if (spawn_params[1] > spawn_params[2]){
-        var meow1 = spawn_params[1]
-        var meow2 = spawn_params[2]
-        spawn_params[1] = Math.min(meow1, meow2)
-        spawn_params[2] = Math.max(meow1, meow2)
+      if (spawn_params[0] > spawn_params[1]){
+        var meow1 = spawn_params[0]
+        var meow2 = spawn_params[1]
+        spawn_params[0] = Math.min(meow1, meow2)
+        spawn_params[1] = Math.max(meow1, meow2)
+      }
+      if (spawn_params[2] > spawn_params[3]){
+        var meow1 = spawn_params[2]
+        var meow2 = spawn_params[3]
+        spawn_params[2] = Math.min(meow1, meow2)
+        spawn_params[3] = Math.max(meow1, meow2)
       }
       return mk_pred_B(spawn_params)
     },
@@ -125,11 +135,11 @@ function mk_pred_B(params) {
 
     soft_sat : function(state_B_vect) {
       var params = this.params
-      var diffX = Math.abs(state_B_vect[0])
-      var diffY = params[0] * diffX + this.gap
-      var h_diff_range = [diffY - 0.1, diffY + 0.1]
+      var diffX = state_B_vect[0]
+      var diffY1 = params[0] * diffX + this.gap
+      var diffY2 = params[1] * diffX + this.gap
       var velo_y_range = [params[1], params[2]]
-      return Math.min (soft_in_rng(state_B_vect[1], h_diff_range),
+      return Math.min (soft_in_rng(state_B_vect[1], [diffY1, diffY2]),
                        soft_in_rng(state_B_vect[2], velo_y_range))
     },
 
@@ -168,7 +178,7 @@ var abstract_state_C = {
 }
 var predicate_C = {
   // params are height_diff and side_diff
-  w_diff_range : [-24, 24],
+  w_diff_range : [-2, 2],
   h_diff_range : [50, 52],
   v_diff_range : [-0.1, 0.1],
   

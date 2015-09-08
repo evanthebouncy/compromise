@@ -131,7 +131,7 @@ function Start() {
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
     var abstr_a = predicate_A.sample()
     var the_state_a = abstract_state_A.concretize(abstr_a)
-    simulate_and_render(the_state_a, ctrl_fg, 2000, false, function(x){})
+    simulate_and_render(the_state_a, ctrl_fg, 3000, false, function(x){})
   });
 
   // for training
@@ -139,11 +139,13 @@ function Start() {
     console.log("# # # training f # # #")
     ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 5)
     console.log("# # # training f result: ", ctrl_f.params)
+    console.log("")
   }
   function train_g() {
     console.log("# # # training g # # #")
     ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 5)
     console.log("# # # training g result: ", ctrl_g.params)
+    console.log("")
   }
   function compromise() {
     console.log("# # # compromising f and g # # #")
@@ -151,6 +153,7 @@ function Start() {
                               abstract_state_C, predicate_C, ctrl_g,
                               abstract_state_B, 5)
     console.log("# # # compromising f g result: ", pred_B.params)
+    console.log("")
   }
   $("#train_f").click( function() { train_f() });
   $("#train_g").click( function() { train_g() });

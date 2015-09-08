@@ -44,3 +44,11 @@ function vadd(vx, vy) {
   }
   return ret
 }
+
+function mag(v) {
+  ret = 0
+  for (var i = 0; i < v.length; i++) {
+    ret += v[i] * v[i]
+  }
+  return Math.sqrt(ret)
+}
