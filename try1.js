@@ -149,7 +149,7 @@ function Start() {
     console.log("# # # compromising f and g # # #")
     pred_B = train_constraint(mk_pred_B, abstract_state_A, predicate_A, ctrl_f,
                               abstract_state_C, predicate_C, ctrl_g,
-                              abstract_state_B, 8)
+                              abstract_state_B, 5)
     console.log("# # # compromising f g result: ", pred_B.params)
   }
   $("#train_f").click( function() { train_f() });
