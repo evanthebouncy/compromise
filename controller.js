@@ -77,7 +77,7 @@ function mk_ctrl_f(params, post_cond) {
     terminate : function (bodies) {
       if (!this.has_run) {return false}
       if (this.goal_close(bodies)) {
-        var abs_state = abstract_state_C.abstraction(bodies)
+        var abs_state = abstract_state_B.abstraction(bodies)
         // keep track of scores, return as soon as it decreases
         var cur_score = this.post_cond.soft_sat(abs_state) 
         if (cur_score < this.last_score) {
