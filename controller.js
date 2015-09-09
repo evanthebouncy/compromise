@@ -13,12 +13,14 @@ function mk_ctrl_f(params, post_cond) {
              ]
   }
   var ctrl_f = {
+    start_pos : null,
     last_score : -9999,
     has_run : false,
     terminated : false,
     post_cond : post_cond,
     params : params,
     clear : function () {
+      this.start_pos = null
       this.last_score = -9999
       this.has_run = false
       this.terminated = false
@@ -30,6 +32,18 @@ function mk_ctrl_f(params, post_cond) {
                        ]
       var spawn_params = vadd(delta_vect, this.params)
       return mk_ctrl_f(spawn_params, post_cond)
+    },
+    cross_over : function(other) {
+      var ret_param = []
+      for (var i = 0; i < this.params.length; i++) {
+        if (Math.random() > 0.5) {
+          ret_param.push(this.params[i])
+        }
+        else {
+          ret_param.push(other.params[i])
+        }
+      }
+      return mk_ctrl_f(ret_param, post_cond)
     },
     // apply force and set terminate time
     apply_force : function (bodies) {
@@ -45,20 +59,35 @@ function mk_ctrl_f(params, post_cond) {
     // given a state, what should I act on? state is given as engine.world.bodies
     act : function (bodies, time) {
       if (!this.has_run) {
+        this.start_pos = [bodies[0].position.x, bodies[0].position.y]
         this.apply_force(bodies, time)
         this.has_run = true
       }
     },
+    // decide if the goal is getting closer
+    goal_close : function (bodies) {
+      var start_pos = {x: this.start_pos[0], y: this.start_pos[1]}
+      var boxApos = bodies[0].position
+      var boxBpos = bodies[1].position
+      var dist_to_start = Matter.Vector.magnitude(Matter.Vector.sub(boxApos, start_pos))
+      var dist_to_end =   Matter.Vector.magnitude(Matter.Vector.sub(boxApos, boxBpos))
+      return dist_to_start > dist_to_end
+    },
     // a greedy algorithm that attempts to terminate closest to the first best state
     terminate : function (bodies) {
-      var abs_state = abstract_state_B.abstraction(bodies)
-      // keep track of scores, return as soon as it decreases
-      var cur_score = this.post_cond.soft_sat(abs_state)
-      if (cur_score < this.last_score) {
-        this.terminated = true
-        return true
+      if (!this.has_run) {return false}
+      if (this.goal_close(bodies)) {
+        var abs_state = abstract_state_C.abstraction(bodies)
+        // keep track of scores, return as soon as it decreases
+        var cur_score = this.post_cond.soft_sat(abs_state) 
+        if (cur_score < this.last_score) {
+          this.terminated = true
+          return true
+        } else {
+          this.last_score = cur_score
+          return false
+        }
       } else {
-        this.last_score = cur_score
         return false
       }
     }
@@ -103,6 +132,18 @@ function mk_ctrl_g(params, post_cond) {
                        ]
       var spawn_params = vadd(delta_vect, this.params)
       return mk_ctrl_g(spawn_params, post_cond)
+    },
+    cross_over : function(other) {
+      var ret_param = []
+      for (var i = 0; i < this.params.length; i++) {
+        if (Math.random() > 0.5) {
+          ret_param.push(this.params[i])
+        }
+        else {
+          ret_param.push(other.params[i])
+        }
+      }
+      return mk_ctrl_g(ret_param, post_cond)
     },
     // apply force and set terminate time
     apply_force : function (bodies) {

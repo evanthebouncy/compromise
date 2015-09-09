@@ -78,7 +78,7 @@ var abstract_state_B = {
 // make predicate b
 function mk_pred_B(params) {
   if (params.length == 6) {
-    params = [0.0, 0.3, -3.7, 3.7]
+    params = [0.2, 0.5, -3.7, 0.0]
   }
   if (params.length == 0) {
     var slop1 = randR(-0.1, 0.5)
@@ -139,15 +139,17 @@ function mk_pred_B(params) {
       var diffY1 = params[0] * diffX + this.gap
       var diffY2 = params[1] * diffX + this.gap
       var velo_y_range = [params[1], params[2]]
-      return Math.min (soft_in_rng(state_B_vect[1], [diffY1, diffY2]),
-                       soft_in_rng(state_B_vect[2], velo_y_range))
+      return soft_in_rng(state_B_vect[1], [diffY1, diffY2]) *
+             soft_in_rng(state_B_vect[2], velo_y_range)
     },
 
     sample : function() {
       var params = this.params
       var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
-      var diffY = params[0] * diffX + this.gap + randI(-0.1, 0.1)
-      var veloY = randR(params[1], params[2])
+      var diffY1 = params[0] * diffX + this.gap
+      var diffY2 = params[1] * diffX + this.gap
+      var diffY = randR(diffY1, diffY2)
+      var veloY = randR(params[2], params[3])
       return [diffX, diffY, veloY]
     }
   }
@@ -190,11 +192,16 @@ var predicate_C = {
   },
 
   soft_sat : function(state_C_vect) {
-    return Math.min( soft_in_rng(state_C_vect[0], this.w_diff_range),
-                     soft_in_rng(state_C_vect[1], this.h_diff_range),
-                     soft_in_rng(state_C_vect[2], this.v_diff_range),
-                     soft_in_rng(state_C_vect[3], this.v_diff_range)
-            )
+    return soft_in_rng(state_C_vect[0], this.w_diff_range) *
+           soft_in_rng(state_C_vect[1], this.h_diff_range) *
+           soft_in_rng(state_C_vect[2], this.v_diff_range) *
+           soft_in_rng(state_C_vect[3], this.v_diff_range)
+           
+//    return Math.min( soft_in_rng(state_C_vect[0], this.w_diff_range),
+//                     soft_in_rng(state_C_vect[1], this.h_diff_range),
+//                     soft_in_rng(state_C_vect[2], this.v_diff_range),
+//                     soft_in_rng(state_C_vect[3], this.v_diff_range)
+//            )
   },
 
   sample : function() {

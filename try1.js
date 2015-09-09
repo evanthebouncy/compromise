@@ -56,6 +56,16 @@ function simulate_and_render(concrete_state, controller, timeout,
   animate(controller, timeout, terminate_on_ctrl, term_callback)
 }
 
+// for just showing a configuration
+function display(concrete_state) {
+  // clear the world and controller
+  clear_world()
+  // add all of the bodies to the world
+  World.add(engine.world, concrete_state)
+  Runner.tick(runner, engine, 0.0)
+}
+
+
 // simulate the current controller behaviour on a concrete state
 // assume: controller has an act function, which denote what to do on every frame
 // assume: controller has a terminate function, which the simulation should end early
@@ -113,8 +123,9 @@ function Start() {
     var abstr_a = predicate_A.sample()
     var the_state_a = abstract_state_A.concretize(abstr_a)
     var term_cb_f = function(cur_state) {
-      var score = pred_B.soft_sat(abstract_state_B.abstraction(cur_state))
-      console.log("score ", score)
+      var abstr_state = abstract_state_B.abstraction(cur_state)
+      var score = pred_B.soft_sat(abstr_state)
+      console.log("score ", score, " with ", abstr_state)
     }
     simulate_and_render(the_state_a, ctrl_f, 8000, true, term_cb_f)
   });
@@ -122,10 +133,19 @@ function Start() {
     var abstr_b = pred_B.sample()
     var the_state_b = abstract_state_B.concretize(abstr_b)
     var term_cb_f = function(cur_state) {
-      var score = predicate_C.soft_sat(abstract_state_C.abstraction(cur_state))
-      console.log("score ", score)
+      var abstr_state = abstract_state_C.abstraction(cur_state)
+      var score = predicate_C.soft_sat(abstr_state)
+      console.log("score ", score, " with ", abstr_state)
     }
     simulate_and_render(the_state_b, ctrl_g, 8000, true, term_cb_f)
+  });
+  $("#visualize_pred").click( function() {
+    var bodies = abstract_state_B.concretize(pred_B.sample())
+    for (var i = 0; i < 10; i++) {
+      var the_state_b = abstract_state_B.concretize(pred_B.sample())
+      bodies.push(the_state_b[1])
+    }
+    display(bodies)
   });
   $("#animate_fg").click( function() {
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)

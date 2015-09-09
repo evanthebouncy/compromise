@@ -45,7 +45,9 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
       for (var j = 0; j < spawn_num; j++) {
         console.log("spawn n push")
         var child = mom.spawn_child()
-        big_pool_fitness.push([measure(child), child])
+        var other_rand = pool[randI(0, pool.length)]
+        var crossed = child.cross_over(other_rand)
+        big_pool_fitness.push([measure(crossed), crossed])
       }
     }
     big_pool_fitness.sort()
