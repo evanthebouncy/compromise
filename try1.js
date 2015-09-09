@@ -141,7 +141,7 @@ function Start() {
   });
   $("#visualize_pred").click( function() {
     var bodies = abstract_state_B.concretize(pred_B.sample())
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 100; i++) {
       var the_state_b = abstract_state_B.concretize(pred_B.sample())
       bodies.push(the_state_b[1])
     }
@@ -157,13 +157,13 @@ function Start() {
   // for training
   function train_f() {
     console.log("# # # training f # # #")
-    ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 5)
+    ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 6)
     console.log("# # # training f result: ", ctrl_f.params)
     console.log("")
   }
   function train_g() {
     console.log("# # # training g # # #")
-    ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 5)
+    ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 6)
     console.log("# # # training g result: ", ctrl_g.params)
     console.log("")
   }
@@ -179,7 +179,13 @@ function Start() {
   $("#train_g").click( function() { train_g() });
   $("#compromise").click( function() { compromise() });
   $("#infinite_train").click( function() {
+    var measure = mk_measurer (abstract_state_A, predicate_A, 
+                               abstract_state_C, predicate_C, 1000)
+
     while(true) {
+      var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
+      console.log("")
+      console.log("currently the score is ", measure(ctrl_fg))
       train_f()
       train_g()
       compromise()

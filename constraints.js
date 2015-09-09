@@ -29,7 +29,7 @@ var abstract_state_A = {
 // meets the predicate, and a function to create a sample point in an abstract state
 var predicate_A = {
   // params are height_diff and side_diff
-  w_diff_range : [100, 300],
+  w_diff_range : [100, 200],
   h_diff_range : [200, 400],
   
   sat : function(abs_vect) {
@@ -95,7 +95,7 @@ function mk_pred_B(params) {
     // the offset that's a constant for now
     gap : 60,
     // params are height_diff and side_diff
-    w_diff_range : [100, 300],
+    w_diff_range : [100, 200],
     // this param is the diff multiplier, 
     // diff bound,
     // and the y_velocity_bounds

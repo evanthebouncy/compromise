@@ -106,7 +106,7 @@ function mk_ctrl_g(params, post_cond) {
   // random params for seeding
   if (params.length == 0) {
     params = [ randR(0, 0.001),
-               randR(-0.001, 0),
+               randR(-0.0001, 0),
                randR(0, 0.01),
                randR(-0.01, 0.01)
              ]
@@ -202,11 +202,9 @@ function mk_ctrl_fg(ctrl_f, ctrl_g) {
     },
     act : function (bodies, time) {
       if (!ctrl_f.terminated) {
-        console.log("F act")
         ctrl_f.act(bodies, time)
       }
       if (ctrl_f.terminated && !ctrl_g.terminated) {
-        console.log("G act")
         ctrl_g.act(bodies, time)
       }
     },
