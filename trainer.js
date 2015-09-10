@@ -25,9 +25,10 @@ function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
 
 function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_gen) {
   var pool_max_size = 20
-  var spawn_num = 3
+  var spawn_num = 1
   var pool = []
   var big_pool_fitness = []
+  var measure = mk_measurer(abstr_pre, pred_pre, abstr_post, pred_post, 100)
   // populate the pool of random controllers
   for (var i = 0; i < pool_max_size; i++) {
     pool.push(ctrl_mkr([],pred_post)) 
@@ -36,9 +37,9 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
   // for num gen number of rounds
   for (var gen_i = 0; gen_i < num_gen; gen_i++) {
     console.log("generation: ", gen_i)
+    console.log("pool ", _.map(pool, function(x){return x.params}))
     // make babies and measure fitness
     big_pool_fitness = []
-    var measure = mk_measurer(abstr_pre, pred_pre, abstr_post, pred_post, 100)
     for (var i = 0; i < pool_max_size; i++) {
       var mom = pool[i]
       big_pool_fitness.push([measure(mom), mom])
@@ -50,7 +51,8 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
         big_pool_fitness.push([measure(crossed), crossed])
       }
     }
-    big_pool_fitness.sort()
+    console.log("big pool ", _.map(big_pool_fitness, function(x){return [x[0], x[1].params]}))
+    big_pool_fitness.sort(fitness_sort_fun)
     big_pool_fitness.reverse()
     // survival of the top
     pool = []
@@ -89,9 +91,12 @@ function train_constraint(constr_mkr, abstr_pre, pred_pre, ctrl_f,
                           abstr_middle, num_gen) {
 
   var pool_max_size = 20
-  var spawn_num = 2
+  var spawn_num = 1
   var pool = []
   var big_pool_fitness = []
+  var measure_const = mk_measurer_constraint(abstract_state_A, predicate_A, ctrl_f,
+                                             abstract_state_C, predicate_C, ctrl_g,
+                                             abstract_state_B, 100)
   // populate the pool of random controllers
   for (var i = 0; i < pool_max_size; i++) {
     pool.push(constr_mkr([])) 
@@ -100,11 +105,9 @@ function train_constraint(constr_mkr, abstr_pre, pred_pre, ctrl_f,
   // for num gen number of rounds
   for (var gen_i = 0; gen_i < num_gen; gen_i++) {
     console.log("generation: ", gen_i)
+    console.log("if quality degrade, look at this pool: ", pool)
     // make babies and measure fitness
     big_pool_fitness = []
-    var measure_const = mk_measurer_constraint(abstract_state_A, predicate_A, ctrl_f,
-                                               abstract_state_C, predicate_C, ctrl_g,
-                                               abstract_state_B, 1000)
     for (var i = 0; i < pool_max_size; i++) {
       var mom = pool[i]
       big_pool_fitness.push([measure_const(mom), mom])
@@ -114,7 +117,8 @@ function train_constraint(constr_mkr, abstr_pre, pred_pre, ctrl_f,
         big_pool_fitness.push([measure_const(child), child])
       }
     }
-    big_pool_fitness.sort()
+    big_pool_fitness.sort(fitness_sort_fun)
+    console.log("if quality degrade, look at this big_pool: ", big_pool_fitness)
     big_pool_fitness.reverse()
     // survival of the top
     pool = []

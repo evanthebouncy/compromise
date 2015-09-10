@@ -52,3 +52,12 @@ function mag(v) {
   }
   return Math.sqrt(ret)
 }
+
+function fitness_sort_fun(a, b) {
+  if (a[0] === b[0]) {
+      return 0;
+  }
+  else {
+      return (a[0] < b[0]) ? -1 : 1;
+  }
+}

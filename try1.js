@@ -115,8 +115,8 @@ function Start() {
   // initialize some starting points
   var pred_B = mk_pred_B([6,6,6,6,6,6])
   console.log("initial pred_B guess: ", pred_B.params)
-  var ctrl_f = mk_ctrl_f([6,6,6,6,6,6],pred_B)
-  var ctrl_g = mk_ctrl_g([6,6,6,6,6,6],predicate_C) 
+  var ctrl_f = mk_ctrl_f([6,6,6,6,6,6])
+  var ctrl_g = mk_ctrl_g([6,6,6,6,6,6]) 
 
   // for visualizing the controller and the compsoed controller
   $("#animate_f").click( function() {
@@ -157,13 +157,13 @@ function Start() {
   // for training
   function train_f() {
     console.log("# # # training f # # #")
-    ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 6)
+    ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, abstract_state_B, pred_B, 4)
     console.log("# # # training f result: ", ctrl_f.params)
     console.log("")
   }
   function train_g() {
     console.log("# # # training g # # #")
-    ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 6)
+    ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, abstract_state_C, predicate_C, 4)
     console.log("# # # training g result: ", ctrl_g.params)
     console.log("")
   }
