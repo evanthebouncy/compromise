@@ -36,7 +36,7 @@ var predicate_A = {
     return in_rng(abs_vect[0], this.w_diff_range) && in_rng(-1*abs_vect[1], this.h_diff_range)
   },
 
-  soft_sat : function(vect) {
+  soft_sat : function(abs_vect) {
     return Math.min (soft_in_rng(abs_vect[0], this.w_diff_range), 
                      soft_in_rng(-1 * abs_vect[1], this.h_diff_range)
                     )
@@ -45,7 +45,8 @@ var predicate_A = {
   sample : function() {
     var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
     var diffY = -1 * randI(this.h_diff_range[0], this.h_diff_range[1])
-    return [diffX, diffY]
+    var ret = [diffX, diffY]
+    return [ret, this.soft_sat(ret)]
   }
 }
 
@@ -143,14 +144,28 @@ function mk_pred_B(params) {
              soft_in_rng(state_B_vect[2], velo_y_range)
     },
 
+//    sample : function() {
+//      var params = this.params
+//      var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
+//      var diffY1 = params[0] * diffX + this.gap
+//      var diffY2 = params[1] * diffX + this.gap
+//      var diffY = randR(diffY1, diffY2)
+//      var veloY = randR(params[2], params[3])
+//      return [diffX, diffY, veloY]
+//    }
     sample : function() {
       var params = this.params
-      var diffX = randI(this.w_diff_range[0], this.w_diff_range[1])
+      var lengthX = Math.abs(this.w_diff_range[0] - this.w_diff_range[1])
+      var diffX = randI(this.w_diff_range[0] - lengthX / 8, this.w_diff_range[1] + lengthX / 8)
       var diffY1 = params[0] * diffX + this.gap
       var diffY2 = params[1] * diffX + this.gap
-      var diffY = randR(diffY1, diffY2)
-      var veloY = randR(params[2], params[3])
-      return [diffX, diffY, veloY]
+      var lengthY = Math.abs(diffY1 - diffY2)
+      var diffY = randR(diffY1 - lengthY / 8, diffY2 + lengthY / 8)
+      var lengthV = Math.abs(params[2]- params[3])
+      var veloY = randR(params[2] - lengthV / 8, params[3] + lengthV / 8)
+      var sample = [diffX, diffY, veloY]
+      var sample_weight = this.soft_sat(sample)
+      return [sample, sample_weight]
     }
   }
   return predicate_B
@@ -180,7 +195,7 @@ var abstract_state_C = {
 }
 var predicate_C = {
   // params are height_diff and side_diff
-  w_diff_range : [-2, 2],
+  w_diff_range : [-10, -4],
   h_diff_range : [50, 52],
   v_diff_range : [-0.1, 0.1],
   

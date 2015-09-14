@@ -1,4 +1,5 @@
 // create a measurer for fitness, generate a fixed number of test cases
+// this should be deterministic
 function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
   var test_cases = []
   // huge bug fix, we gotta push the non-concretized version,
@@ -14,21 +15,24 @@ function mk_measurer (abstr_pre, pred_pre, abstr_post, pred_post, test_n) {
   function measure(ctrl) {
     var ret = 0.0
     for (var i = 0; i < test_n; i++) {
-      var init_state = abstr_pre.concretize(test_cases[i])
+      var init_s_w = test_cases[i]
+      var init_s = init_s_w[0]
+      var init_w = init_s_w[1]
+      var init_state = abstr_pre.concretize(init_s)
       var final_state = simulate(init_state, ctrl, 5000)
-      ret += get_test_score(final_state)
+      ret += init_w * get_test_score(final_state)
     }
     return ret
   } 
   return measure
 }
 
-function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_gen) {
+function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_gen, seed) {
   var pool_max_size = 20
   var spawn_num = 1
   var pool = []
+  if (seed != null) {pool.push(seed)}
   var big_pool_fitness = []
-  var measure = mk_measurer(abstr_pre, pred_pre, abstr_post, pred_post, 100)
   // populate the pool of random controllers
   for (var i = 0; i < pool_max_size; i++) {
     pool.push(ctrl_mkr([],pred_post)) 
@@ -36,6 +40,7 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
   // commence evolution
   // for num gen number of rounds
   for (var gen_i = 0; gen_i < num_gen; gen_i++) {
+    var measure = mk_measurer(abstr_pre, pred_pre, abstr_post, pred_post, 150)
     console.log("generation: ", gen_i)
     console.log("pool ", _.map(pool, function(x){return x.params}))
     // make babies and measure fitness
@@ -60,11 +65,13 @@ function train_ctrl(ctrl_mkr, abstr_pre, pred_pre, abstr_post, pred_post, num_ge
       pool.push(big_pool_fitness[k][1])
     }
     console.log("top fitness: ", measure(pool[0]), " params: ", pool[0].params)
+    loggy("top fitness: " + measure(pool[0]) + " params: " + pool[0].params)
   }
   return pool[0]
 }
 
-// measure a middle constraint
+// measure a middle constraint, this measurer is by definition not deterministic
+// as it needs to sample
 function mk_measurer_constraint(abstr_pre, pred_pre, ctrl_f, 
                                 abstr_post, pred_post, ctrl_g,
                                 abstr_middle, test_n) {
@@ -73,13 +80,19 @@ function mk_measurer_constraint(abstr_pre, pred_pre, ctrl_f,
     var score_second = 0.0
     for (var i = 0; i < test_n; i++) {
       // get the first score
-      var rand_state_a = abstr_pre.concretize(pred_pre.sample())
+      var pre_state_weight = pred_pre.sample()
+      var pre_state = pre_state_weight[0]
+      var pre_w = pre_state_weight[1]
+      var rand_state_a = abstr_pre.concretize(pre_state)
       var state_fa = simulate(rand_state_a, ctrl_f, 5000)
-      score_first += pred_middle.soft_sat(abstr_middle.abstraction(state_fa))
+      score_first += pre_w * pred_middle.soft_sat(abstr_middle.abstraction(state_fa))
       // get the second score
-      var rand_state_b = abstr_middle.concretize(pred_middle.sample())
+      var mid_state_weight = pred_middle.sample()
+      var mid_state = mid_state_weight[0]
+      var mid_w = mid_state_weight[1]
+      var rand_state_b = abstr_middle.concretize(mid_state)
       var state_gb = simulate(rand_state_b, ctrl_g, 5000)
-      score_second += pred_post.soft_sat(abstr_post.abstraction(state_gb))
+      score_second += mid_w * pred_post.soft_sat(abstr_post.abstraction(state_gb))
     }
     return score_first * score_second
   }
@@ -88,15 +101,16 @@ function mk_measurer_constraint(abstr_pre, pred_pre, ctrl_f,
 
 function train_constraint(constr_mkr, abstr_pre, pred_pre, ctrl_f, 
                           abstr_post, pred_post, ctrl_g,
-                          abstr_middle, num_gen) {
+                          abstr_middle, num_gen, seed) {
 
   var pool_max_size = 20
   var spawn_num = 1
   var pool = []
+  if (seed != null) {pool.push(seed)}
   var big_pool_fitness = []
   var measure_const = mk_measurer_constraint(abstract_state_A, predicate_A, ctrl_f,
                                              abstract_state_C, predicate_C, ctrl_g,
-                                             abstract_state_B, 100)
+                                             abstract_state_B, 200)
   // populate the pool of random controllers
   for (var i = 0; i < pool_max_size; i++) {
     pool.push(constr_mkr([])) 
@@ -126,6 +140,7 @@ function train_constraint(constr_mkr, abstr_pre, pred_pre, ctrl_f,
       pool.push(big_pool_fitness[k][1])
     }
     console.log("top fitness: ", measure_const(pool[0]), " params: ", pool[0].params)
+    loggy("top fitness: "+ measure_const(pool[0])+ " params: "+ pool[0].params)
   }
   return pool[0]
 }

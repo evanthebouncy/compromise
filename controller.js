@@ -3,7 +3,7 @@
 function mk_ctrl_f(params) {
   // default params for testing
   if (params.length == 6) {
-    params  = [-0.00005, 0.00055, 0.000, 0.5]
+    params  = [-0.00005, 0.00055, 0.000, 0.0]
   }
   // random params for seeding
   if (params.length == 0) {
@@ -22,9 +22,9 @@ function mk_ctrl_f(params) {
       this.terminated = false
     },
     spawn_child : function() {
-      var delta_vect = [ randR(-0.00001, 0.00001),
-                         randR(-0.00001, 0.00001),
+      var delta_vect = [ randR(-0.0001, 0.0001),
                          randR(-0.0001, 0.0001),
+                         randR(-0.001, 0.001),
                          randR(-0.06, 0.06)
                        ]
       var spawn_params = vadd(delta_vect, this.params)
@@ -64,10 +64,8 @@ function mk_ctrl_f(params) {
     // a greedy algorithm that attempts to terminate closest to the first best state
     terminate : function (bodies) {
       if (!this.has_run) {return false}
-      var x_diff = bodies[1].position.x - bodies[0].position.x
-      var y_diff = bodies[1].position.y - bodies[0].position.y
-      var ratio = y_diff / x_diff
-      if (Math.abs(ratio - this.params[3]) < 0.1) {
+      var y_velo = bodies[0].velocity.y
+      if (y_velo > this.params[3] && this.has_run){
         this.terminated = true
         return true
       }
