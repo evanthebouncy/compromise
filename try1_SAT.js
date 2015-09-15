@@ -117,77 +117,79 @@ function Start() {
   }
 
   // initialize some starting points
-  var pred_B = mk_pred_B([6,6,6,6,6,6])
-  console.log("initial pred_B guess: ", pred_B.params)
+  var constraint_B = mk_constraint_B([6,6,6,6,6,6])
+  console.log("initial constraint_B guess: ", constraint_B.params)
   var ctrl_f = mk_ctrl_f([])
   var ctrl_g = mk_ctrl_g([]) 
 
   // for visualizing the controller and the compsoed controller
   $("#animate_f").click( function() {
-    var abstr_a = predicate_A.sample()[0]
-    var the_state_a = abstract_state_A.concretize(abstr_a)
+    var the_state_a = constraint_A.concrete_sample()
     var term_cb_f = function(cur_state) {
-      var abstr_state = abstract_state_B.abstraction(cur_state)
-      var score = pred_B.soft_sat(abstr_state)
+      var abstr_state = constraint_B.abstraction(cur_state)
+      var score = constraint_B.sat(abstr_state)
       console.log("score ", score, " with ", abstr_state)
     }
     simulate_and_render(the_state_a, ctrl_f, 8000, true, term_cb_f)
   });
   $("#animate_g").click( function() {
-    var abstr_b = pred_B.sample()[0]
-    var the_state_b = abstract_state_B.concretize(abstr_b)
+    var the_state_b = constraint_B.concrete_sample()
     var term_cb_f = function(cur_state) {
-      var abstr_state = abstract_state_C.abstraction(cur_state)
-      var score = predicate_C.soft_sat(abstr_state)
+      var abstr_state = constraint_C.abstraction(cur_state)
+      var score = constraint_C.sat(abstr_state)
       console.log("score ", score, " with ", abstr_state)
     }
     simulate_and_render(the_state_b, ctrl_g, 8000, true, term_cb_f)
   });
-  $("#visualize_pred").click( function() {
-    var bodies = abstract_state_B.concretize(pred_B.sample()[0])
+  $("#visualize_constraint").click( function() {
+//    console.log("what")
+//    var bodies = constraint_C.concrete_sample()
+//    for (var i = 0; i < 100; i++) {
+//      var the_state = constraint_C.concrete_sample()
+//      bodies.push(the_state[1])
+//    }
+//    display(bodies)
+    var constraint_B = mk_constraint_B([6,6,6,6,6,6])
+    var bodies = constraint_B.concrete_sample()
     for (var i = 0; i < 100; i++) {
-      var the_state_b = abstract_state_B.concretize(pred_B.sample()[0])
-      bodies.push(the_state_b[1])
+      var the_state = constraint_B.concrete_sample()
+      bodies.push(the_state[1])
     }
     display(bodies)
   });
   $("#animate_fg").click( function() {
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
-    var abstr_a = predicate_A.sample()[0]
-    var the_state_a = abstract_state_A.concretize(abstr_a)
+    var the_state_a = constraint_A.concrete_sample()
     simulate_and_render(the_state_a, ctrl_fg, 3000, false, function(x){})
   });
 
   // for training
   function train_f() {
     console.log("# # # training f # # #")
-    ctrl_f = train_ctrl(mk_ctrl_f, abstract_state_A, predicate_A, 
-                        abstract_state_B, pred_B, 3, ctrl_f)
+    ctrl_f = train_ctrl(mk_ctrl_f, constraint_A, constraint_B, 6, ctrl_f)
     console.log("# # # training f result: ", ctrl_f.params)
     console.log("")
   }
   function train_g() {
     console.log("# # # training g # # #")
-    ctrl_g = train_ctrl(mk_ctrl_g, abstract_state_B, pred_B, 
-                        abstract_state_C, predicate_C, 3, ctrl_g)
+    ctrl_g = train_ctrl(mk_ctrl_g, constraint_B, constraint_C, 6, ctrl_g)
     console.log("# # # training g result: ", ctrl_g.params)
     console.log("")
   }
   function compromise() {
     console.log("# # # compromising f and g # # #")
-    pred_B = train_constraint(mk_pred_B, abstract_state_A, predicate_A, ctrl_f,
-                              abstract_state_C, predicate_C, ctrl_g,
-                              abstract_state_B, 3, pred_B)
-    console.log("# # # compromising f g result: ", pred_B.params)
+    constraint_B = train_constraint(mk_constraint_B, constraint_A, constraint_C,
+                              ctrl_f, ctrl_g, 10, constraint_B)
+    console.log("# # # compromising f g result: ", constraint_B.params)
     console.log("")
   }
   $("#train_f").click( function() { train_f() });
   $("#train_g").click( function() { train_g() });
   $("#compromise").click( function() { compromise() });
 
-  var boss_measure = mk_measurer (abstract_state_A, predicate_A, 
-                             abstract_state_C, predicate_C, 1000)
-  $("#infinite_train").click( function() {
+//  var boss_measure = mk_measurer (abstract_state_A, predicate_A, 
+//                             abstract_state_C, predicate_C, 1000)
+  $("#full_train").click( function() {
     console.log("full training iteration")
     loggy("full training")
     loggy("training f")
@@ -195,9 +197,13 @@ function Start() {
     loggy("training g")
     train_g()
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
-    loggy("currently the score is "+ boss_measure(ctrl_fg))
+    // loggy("currently the score is "+ boss_measure(ctrl_fg))
     loggy("compromising... ")
     compromise()
+    loggy("training f")
+    train_f()
+    loggy("training g")
+    train_g()
   });
 }
 

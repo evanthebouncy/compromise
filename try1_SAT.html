@@ -4,9 +4,9 @@
     <script src="lib/matter.js"></script>
     <script src="lib/utils.js"></script>
     <script src="lib/underscore.js"></script>
-    <script src="constraints.js"></script>
+    <script src="constraints_SAT.js"></script>
     <script src="controller.js"></script>
-    <script src="trainer.js"></script>
+    <script src="trainer_SAT.js"></script>
     <script src="try1_SAT.js"></script>
   </head>
   
@@ -15,14 +15,14 @@
     <div>
       <button id="animate_f">animate F</button>
       <button id="animate_g">animate G</button>
-      <button id="visualize_pred">visualize predicate</button>
+      <button id="visualize_constraint">visualize constraint</button>
       <button id="animate_fg">animate FG</button>
       -----
       <button id="train_f">train F</button>
       <button id="train_g">train G</button>
       <button id="compromise">compromise</button>
       -----
-      <button id="infinite_train">infinity training</button>
+      <button id="full_train">full training</button>
     </div>
     <div id="loggy"></div>
   </body>

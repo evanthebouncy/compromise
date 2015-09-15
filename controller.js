@@ -45,7 +45,7 @@ function mk_ctrl_f(params) {
     // apply force and set terminate time
     apply_force : function (bodies) {
       var boxA = bodies[0]
-      var abs_state = abstract_state_A.abstraction(bodies)
+      var abs_state = constraint_A.abstraction(bodies)
       // console.log("abs state ", abs_state)
       var action_state = [abs_state[0], abs_state[1], 1.0]
       var front_params = [this.params[0], this.params[1], this.params[2]]
@@ -122,12 +122,12 @@ function mk_ctrl_g(params, post_cond) {
           ret_param.push(other.params[i])
         }
       }
-      return mk_ctrl_g(ret_param, post_cond)
+      return mk_ctrl_g(ret_param)
     },
     // apply force and set terminate time
     apply_force : function (bodies) {
       var boxA = bodies[0]
-      var abs_state = abstract_state_B.abstraction(bodies)
+      var abs_state = mk_constraint_B([]).abstraction(bodies)
       // console.log("abs state ", abs_state)
       var action_state = [abs_state[0], abs_state[1], abs_state[2], 1.0]
       var force = {x: vdot(this.params, action_state), y: 0.0}  
@@ -149,7 +149,7 @@ function mk_ctrl_g(params, post_cond) {
       var boxBx = bodies[1].position.x
       var boxAy = bodies[0].position.y
       var boxBy = bodies[1].position.y
-      return boxAx > boxBx || boxAy > boxBy 
+      return boxAx - 25 > boxBx || boxAy - 25 > boxBy 
     }
   }
   return ctrl_g
