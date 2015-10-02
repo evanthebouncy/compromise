@@ -149,7 +149,7 @@ function mk_ctrl_g(params, post_cond) {
       var boxBx = bodies[1].position.x
       var boxAy = bodies[0].position.y
       var boxBy = bodies[1].position.y
-      return boxAx - 25 > boxBx || boxAy - 25 > boxBy 
+      return boxAx - 100 > boxBx || boxAy - 200 > boxBy 
     }
   }
   return ctrl_g

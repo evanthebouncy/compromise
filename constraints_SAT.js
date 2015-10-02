@@ -20,7 +20,7 @@ var constraint_A = {
     var boxA = Bodies.rectangle(aX, aY, 50, 50, {restitution: 0.3});
     var bX = abs_vect[0] + aX
     var bY = abs_vect[1] + aY
-    var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
+    var boxB = Bodies.rectangle(bX, bY, 100, 50, {isStatic:true});
     var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
     return [boxA, boxB, ground]
   },
@@ -56,7 +56,7 @@ var constraint_A = {
 // the middle condition B
 function mk_constraint_B(params) {
   if (params.length == 6) {
-    params = [-0.5, 0.5, -3.7, 3.7]
+    params = [-0.7, 0.7, -3.7, 3.7]
   }
   if (params.length == 0) {
     var slop1 = randR(-0.7, 0.7)
@@ -92,9 +92,15 @@ function mk_constraint_B(params) {
       Body.setVelocity(boxA, {x: 0.0, y: state_B_vect[2]})
       var bX = state_B_vect[0] + aX
       var bY = state_B_vect[1] + aY
-      var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
+      var boxB = Bodies.rectangle(bX, bY, 100, 50, {isStatic:true});
       var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
       return [boxA, boxB, ground]
+    },
+
+    // approximate the area of this constraint
+    area : function() {
+      return Math.abs(this.params[1] - this.params[0]) *
+             Math.abs(this.params[3] - this.params[2])
     },
 
     sat : function(state_B_vect) {
@@ -168,9 +174,6 @@ function mk_constraint_B(params) {
 // for the postcondition C
 // abstract state is of the form [deltaX, deltaY, a.velocity] 
 var constraint_C = {
-
-  w_diff_range : [0, 10],
-  h_diff_range : [50, 52],
   v_diff_range : [-0.1, 0.1],
   abstraction : function(bodies) {
     var boxA = bodies[0]
@@ -185,15 +188,14 @@ var constraint_C = {
     Body.setVelocity(boxA, {x: state_C_vect[2], y: state_C_vect[3]})
     var bX = state_C_vect[0] + 400
     var bY = state_C_vect[1] + 300
-    var boxB = Bodies.rectangle(bX, bY, 50, 50, {isStatic:true});
+    var boxB = Bodies.rectangle(bX, bY, 100, 50, {isStatic:true});
     var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
     return [boxA, boxB, ground]
   },
 
   // params are height_diff and side_diff
   sat : function(state_C_vect) {
-    var satt = in_rng(state_C_vect[0], this.w_diff_range) && 
-               in_rng(state_C_vect[1], this.h_diff_range) &&
+    var satt = state_C_vect[1] > 49 &&
                in_rng(state_C_vect[2], this.v_diff_range) &&
                in_rng(state_C_vect[3], this.v_diff_range)
     if (satt) {return 1.0} else {return 0.0}

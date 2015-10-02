@@ -33,6 +33,7 @@ function animate(ctrl, timeout, terminate_on_ctrl, term_callback) {
       setTimeout(animate1, deltaT)
     } else {
       console.log("end animate")
+      term_callback(cur_state)
     }
   }
   animate1()
@@ -149,7 +150,6 @@ function Start() {
 //      bodies.push(the_state[1])
 //    }
 //    display(bodies)
-    var constraint_B = mk_constraint_B([6,6,6,6,6,6])
     var bodies = constraint_B.concrete_sample()
     for (var i = 0; i < 100; i++) {
       var the_state = constraint_B.concrete_sample()
@@ -166,20 +166,20 @@ function Start() {
   // for training
   function train_f() {
     console.log("# # # training f # # #")
-    ctrl_f = train_ctrl(mk_ctrl_f, constraint_A, constraint_B, 6, ctrl_f)
+    ctrl_f = train_ctrl(mk_ctrl_f, constraint_A, constraint_B, 3, ctrl_f)
     console.log("# # # training f result: ", ctrl_f.params)
     console.log("")
   }
   function train_g() {
     console.log("# # # training g # # #")
-    ctrl_g = train_ctrl(mk_ctrl_g, constraint_B, constraint_C, 6, ctrl_g)
+    ctrl_g = train_ctrl(mk_ctrl_g, constraint_B, constraint_C, 3, ctrl_g)
     console.log("# # # training g result: ", ctrl_g.params)
     console.log("")
   }
   function compromise() {
     console.log("# # # compromising f and g # # #")
     constraint_B = train_constraint(mk_constraint_B, constraint_A, constraint_C,
-                              ctrl_f, ctrl_g, 10, constraint_B)
+                              ctrl_f, ctrl_g, 4, constraint_B)
     console.log("# # # compromising f g result: ", constraint_B.params)
     console.log("")
   }

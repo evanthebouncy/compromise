@@ -84,10 +84,33 @@ function mk_measure_constraint(pre, post, ctrl_f, ctrl_g, test_n) {
       var state_gb = simulate(rand_state_b, ctrl_g, 5000)
       score_second += post.sat(post.abstraction(state_gb))
     }
-    return score_first * score_second
+    return score_first * score_second / constraint_middle.area()
   }
   return measure
 }
+
+// measure match-ness of image
+// higher score the better
+// for this we want the "smallest" area that capture all of the image
+function mk_match_constraint_img(pre, ctrl_f, test_n) {
+  function measure(constraint_middle) {
+    var num_sat = 0
+    for (var i = 0; i < test_n; i++) {
+      var rand_state_a = pre.concrete_sample()
+      var state_fa = simulate(rand_state_a, ctrl_f, 5000)
+      num_sat += constraint_middle.sat(constraint_middle.abstraction(state_fa))
+    }
+    // if it contains all the points of the image, return -area (bigger value better i.e smaller area)
+    // if it doesn't, it should be really bad
+    -100 * (test_n - num_sat) - constraint_middle.area()
+  }
+  return measure
+}
+
+// find a parameter in teh middle-constraint that is the smallest area
+// that capture all of the image
+function match_constraint_img(pre, ctrl_f, num_gen, seed) {
+} 
 
 function train_constraint(constr_mkr, pre, post, ctrl_f, ctrl_g, num_gen, seed) {
 
