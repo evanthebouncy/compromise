@@ -25,25 +25,26 @@ function mk_measurer (pre, post, test_n) {
   return measure
 }
 
-function train_ctrl(ctrl_mkr, pre, post, num_gen, seed) {
-  var pool_max_size = 20
+// genetic algorithm to train an object
+// takes as input a maker to spawn objects, a measure to measure fitness
+// and some hyper-parameters
+function train(obj_mkr, measure, pool_size, num_gen, seed) {
   var spawn_num = 1
   var pool = []
   if (seed != null) {pool.push(seed)}
   var big_pool_fitness = []
   // populate the pool of random controllers
-  for (var i = 0; i < pool_max_size; i++) {
-    pool.push(ctrl_mkr([])) 
+  for (var i = 0; i < pool_size; i++) {
+    pool.push(obj_mkr([])) 
   }
   // commence evolution
   // for num gen number of rounds
   for (var gen_i = 0; gen_i < num_gen; gen_i++) {
-    var measure = mk_measurer(pre, post, 150)
     console.log("generation: ", gen_i)
     console.log("pool ", _.map(pool, function(x){return x.params}))
     // make babies and measure fitness
     big_pool_fitness = []
-    for (var i = 0; i < pool_max_size; i++) {
+    for (var i = 0; i < pool_size; i++) {
       var mom = pool[i]
       big_pool_fitness.push([measure(mom), mom])
       for (var j = 0; j < spawn_num; j++) {
@@ -59,7 +60,7 @@ function train_ctrl(ctrl_mkr, pre, post, num_gen, seed) {
     big_pool_fitness.reverse()
     // survival of the top
     pool = []
-    for (var k = 0; k < pool_max_size; k++) {
+    for (var k = 0; k < pool_size; k++) {
       pool.push(big_pool_fitness[k][1])
     }
     console.log("top fitness: ", measure(pool[0]), " params: ", pool[0].params)
@@ -92,7 +93,7 @@ function mk_measure_constraint(pre, post, ctrl_f, ctrl_g, test_n) {
 // measure match-ness of image
 // higher score the better
 // for this we want the "smallest" area that capture all of the image
-function mk_match_constraint_img(pre, ctrl_f, test_n) {
+function mk_match_measure_img(pre, ctrl_f, test_n) {
   function measure(constraint_middle) {
     var num_sat = 0
     for (var i = 0; i < test_n; i++) {
@@ -100,9 +101,27 @@ function mk_match_constraint_img(pre, ctrl_f, test_n) {
       var state_fa = simulate(rand_state_a, ctrl_f, 5000)
       num_sat += constraint_middle.sat(constraint_middle.abstraction(state_fa))
     }
-    // if it contains all the points of the image, return -area (bigger value better i.e smaller area)
-    // if it doesn't, it should be really bad
+    // if it contains all the points of the image, return -area (bigger value
+    // better i.e smaller area) if it doesn't, it should be really bad
     -100 * (test_n - num_sat) - constraint_middle.area()
+  }
+  return measure
+}
+
+// measure match-ness of pre-image
+// higher score the better
+// for this we want the "biggest" area that capture all of pre-image
+function mk_match_measure_preimg(post, ctrl_g, test_n) {
+  function measure(constraint_middle) {
+    var num_sat = 0
+    for (var i = 0; i < test_n; i++) {
+      var rand_state_b = constraint_middle.concrete_sample()
+      var state_gb = simulate(rand_state_b, ctrl_g, 5000)
+      num_sat += post.sat(post.abstraction(state_gb))
+    }
+    // if it contains all pt of image, it's area, bigger better
+    // else it gets heavily penalized by the number of unsat points
+    -100 * (test_n - num_sat) + constraint_middle.area()
   }
   return measure
 }

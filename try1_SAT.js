@@ -110,6 +110,15 @@ function loggy(stuffs) {
   $('<p>'+stuffs+'</p>').appendTo('#loggy');
 }
 
+function display_constraint(constraint) {
+  var bodies = constraint.concrete_sample()
+  for (var i = 0; i < 100; i++) {
+    var the_state = constraint.concrete_sample()
+    bodies.push(the_state[1])
+  }
+  display(bodies)
+}
+
 function Start() {
   if (engine == null) {
     // create the engine
@@ -119,6 +128,8 @@ function Start() {
 
   // initialize some starting points
   var constraint_B = mk_constraint_B([6,6,6,6,6,6])
+  var constraint_img = mk_constraint_B([])
+  var constraint_preimg = mk_constraint_B([])
   console.log("initial constraint_B guess: ", constraint_B.params)
   var ctrl_f = mk_ctrl_f([])
   var ctrl_g = mk_ctrl_g([]) 
@@ -142,20 +153,14 @@ function Start() {
     }
     simulate_and_render(the_state_b, ctrl_g, 8000, true, term_cb_f)
   });
-  $("#visualize_constraint").click( function() {
-//    console.log("what")
-//    var bodies = constraint_C.concrete_sample()
-//    for (var i = 0; i < 100; i++) {
-//      var the_state = constraint_C.concrete_sample()
-//      bodies.push(the_state[1])
-//    }
-//    display(bodies)
-    var bodies = constraint_B.concrete_sample()
-    for (var i = 0; i < 100; i++) {
-      var the_state = constraint_B.concrete_sample()
-      bodies.push(the_state[1])
-    }
-    display(bodies)
+  $("#visualize_constraint_img").click( function() {
+    display_constraint(constraint_img)
+  });
+  $("#visualize_constraint_preimg").click( function() {
+    display_constraint(constraint_preimg)
+  });
+  $("#visualize_constraint_mid").click( function() {
+    display_constraint(constraint_B)
   });
   $("#animate_fg").click( function() {
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
@@ -166,20 +171,27 @@ function Start() {
   // for training
   function train_f() {
     console.log("# # # training f # # #")
-    ctrl_f = train_ctrl(mk_ctrl_f, constraint_A, constraint_B, 3, ctrl_f)
+    var measure = mk_measurer(constraint_A, constraint_B, 150) 
+    ctrl_f = train(mk_ctrl_f, measure, 20, 5, ctrl_f)
     console.log("# # # training f result: ", ctrl_f.params)
     console.log("")
   }
   function train_g() {
     console.log("# # # training g # # #")
-    ctrl_g = train_ctrl(mk_ctrl_g, constraint_B, constraint_C, 3, ctrl_g)
+    var measure = mk_measurer(constraint_B, constraint_C, 150) 
+    ctrl_g = train(mk_ctrl_g, measure, 20, 5, ctrl_g)
     console.log("# # # training g result: ", ctrl_g.params)
     console.log("")
   }
   function compromise() {
     console.log("# # # compromising f and g # # #")
-    constraint_B = train_constraint(mk_constraint_B, constraint_A, constraint_C,
-                              ctrl_f, ctrl_g, 4, constraint_B)
+    var match_img_measure = mk_match_measure_img(constraint_A, ctrl_f, 200)
+    var match_preimage_measure = mk_match_measure_preimg(constraint_C, ctrl_g, 200)
+
+    constraint_img = train(mk_constraint_B, match_img_measure, 20, 5, constraint_img)
+    constraint_preimg = train(mk_constraint_B, match_preimg_measure, 20, 5, constraint_preimg)
+
+    constraint_B = compromise(constraint_img, constraint_preimg)
     console.log("# # # compromising f g result: ", constraint_B.params)
     console.log("")
   }

@@ -52,7 +52,6 @@ var constraint_A = {
   }
 }
 
-
 // the middle condition B
 function mk_constraint_B(params) {
   if (params.length == 6) {
@@ -169,6 +168,16 @@ function mk_constraint_B(params) {
     
   }
   return constraint_B
+}
+
+function compromise(B1, B2) {
+  var param1 = B1.params
+  var param2 = B2.params
+  var param = []
+  for (var i = 0; i < param1.length; i++) {
+    param.push(param1[i] * 0.5 + param2[i] * 0.5)
+  }
+  return mk_constraint_B(param)
 }
 
 // for the postcondition C
