@@ -102,17 +102,27 @@ function mk_constraint_B(params) {
              Math.abs(this.params[3] - this.params[2])
     },
 
+    // subbing in a soft sat for now, it's getting painful to train
+    // sat : function(state_B_vect) {
+    //   var diffX = state_B_vect[0]
+    //   var diffY1 = this.params[0] * diffX + this.gap
+    //   var diffY2 = this.params[1] * diffX + this.gap
+    //   var velo_y_range = [this.params[2], this.params[3]]
+    //   if (in_rng(state_B_vect[1], [diffY1, diffY2]) &&
+    //       in_rng(state_B_vect[2], velo_y_range)) {
+    //     return 1.0
+    //   } else {
+    //     return 0
+    //   }
+    // },
+
     sat : function(state_B_vect) {
       var diffX = state_B_vect[0]
       var diffY1 = this.params[0] * diffX + this.gap
       var diffY2 = this.params[1] * diffX + this.gap
       var velo_y_range = [this.params[2], this.params[3]]
-      if (in_rng(state_B_vect[1], [diffY1, diffY2]) &&
-          in_rng(state_B_vect[2], velo_y_range)) {
-        return 1.0
-      } else {
-        return 0
-      }
+      return soft_in_rng(state_B_vect[1], [diffY1, diffY2]) *
+             soft_in_rng(state_B_vect[2], velo_y_range)
     },
 
     sample : function() {
