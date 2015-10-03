@@ -127,7 +127,8 @@ function Start() {
   }
 
   // initialize some starting points
-  var constraint_B = mk_constraint_B([6,6,6,6,6,6])
+  // var constraint_B = mk_constraint_B([6,6,6,6,6,6])
+  var constraint_B = mk_constraint_B([-0.2507706522126682, 0.5908728351932949, -4.519418032607064, -0.27293739386368543])
   var constraint_img = mk_constraint_B([])
   var constraint_preimg = mk_constraint_B([])
   console.log("initial constraint_B guess: ", constraint_B.params)
@@ -186,12 +187,12 @@ function Start() {
   function compromise() {
     console.log("# # # compromising f and g # # #")
     var match_img_measure = mk_match_measure_img(constraint_A, ctrl_f, 200)
-    var match_preimage_measure = mk_match_measure_preimg(constraint_C, ctrl_g, 200)
+    var match_preimg_measure = mk_match_measure_preimg(constraint_C, ctrl_g, 200)
 
     constraint_img = train(mk_constraint_B, match_img_measure, 20, 5, constraint_img)
     constraint_preimg = train(mk_constraint_B, match_preimg_measure, 20, 5, constraint_preimg)
 
-    constraint_B = compromise(constraint_img, constraint_preimg)
+    constraint_B = interpolate(constraint_img, constraint_preimg)
     console.log("# # # compromising f g result: ", constraint_B.params)
     console.log("")
   }

@@ -103,7 +103,7 @@ function mk_match_measure_img(pre, ctrl_f, test_n) {
     }
     // if it contains all the points of the image, return -area (bigger value
     // better i.e smaller area) if it doesn't, it should be really bad
-    -100 * (test_n - num_sat) - constraint_middle.area()
+    return -100 * (test_n - num_sat) - constraint_middle.area()
   }
   return measure
 }
@@ -121,7 +121,7 @@ function mk_match_measure_preimg(post, ctrl_g, test_n) {
     }
     // if it contains all pt of image, it's area, bigger better
     // else it gets heavily penalized by the number of unsat points
-    -100 * (test_n - num_sat) + constraint_middle.area()
+    return -100 * (test_n - num_sat) + constraint_middle.area()
   }
   return measure
 }

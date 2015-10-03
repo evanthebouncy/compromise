@@ -137,20 +137,25 @@ function mk_constraint_B(params) {
                          randR(-0.5, 0.5),
                          randR(-0.5, 0.5)
                        ]
-      var spawn_params = vadd(delta_vect, this.params)
-      if (spawn_params[0] > spawn_params[1]){
-        var meow1 = spawn_params[0]
-        var meow2 = spawn_params[1]
-        spawn_params[0] = Math.min(meow1, meow2)
-        spawn_params[1] = Math.max(meow1, meow2)
-      }
-      if (spawn_params[2] > spawn_params[3]){
-        var meow1 = spawn_params[2]
-        var meow2 = spawn_params[3]
-        spawn_params[2] = Math.min(meow1, meow2)
-        spawn_params[3] = Math.max(meow1, meow2)
-      }
+      var spawn_params = this.re_order(vadd(delta_vect, this.params))
+
       return mk_constraint_B(spawn_params)
+    },
+
+    re_order : function (paramz) {
+      if (paramz[0] > paramz[1]){
+        var meow1 = paramz[0]
+        var meow2 = paramz[1]
+        paramz[0] = Math.min(meow1, meow2)
+        paramz[1] = Math.max(meow1, meow2)
+      }
+      if (paramz[2] > paramz[3]){
+        var meow1 = paramz[2]
+        var meow2 = paramz[3]
+        paramz[2] = Math.min(meow1, meow2)
+        paramz[3] = Math.max(meow1, meow2)
+      }
+      return paramz
     },
 
     cross_over : function (other) {
@@ -163,14 +168,14 @@ function mk_constraint_B(params) {
           ret_param.push(other.params[i])
         }
       }
-      return mk_constraint_B(ret_param)
+      return mk_constraint_B(this.re_order(ret_param))
     }
     
   }
   return constraint_B
 }
 
-function compromise(B1, B2) {
+function interpolate(B1, B2) {
   var param1 = B1.params
   var param2 = B2.params
   var param = []
