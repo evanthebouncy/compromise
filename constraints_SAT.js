@@ -195,6 +195,16 @@ function interpolate(B1, B2) {
   return mk_constraint_B(param)
 }
 
+function constraint_dist(B1, B2) {
+  var param1 = B1.params
+  var param2 = B2.params
+  ret = 0.0
+  for (var i = 0; i < param1.length; i++) {
+    ret += Math.abs(param1[i] - param2[i])
+  }
+  return ret
+}
+
 // for the postcondition C
 // abstract state is of the form [deltaX, deltaY, a.velocity] 
 var constraint_C = {

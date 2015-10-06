@@ -69,59 +69,36 @@ function train(obj_mkr, measure, pool_size, num_gen, seed) {
   return pool[0]
 }
 
-// measure a middle constraint, this measure is by definition not deterministic
-// as it needs to sample
-function mk_measure_constraint(pre, post, ctrl_f, ctrl_g, test_n) {
-  function measure(constraint_middle) {
-    var score_first = 0.0
-    var score_second = 0.0
-    for (var i = 0; i < test_n; i++) {
-      // get the first score
-      var rand_state_a = pre.concrete_sample()
-      var state_fa = simulate(rand_state_a, ctrl_f, 5000)
-      score_first += constraint_middle.sat(constraint_middle.abstraction(state_fa))
-      // get the second score
-      var rand_state_b = constraint_middle.concrete_sample()
-      var state_gb = simulate(rand_state_b, ctrl_g, 5000)
-      score_second += post.sat(post.abstraction(state_gb))
-    }
-    return score_first * score_second / constraint_middle.area()
-  }
-  return measure
-}
-
-// measure match-ness of image
-// higher score the better
-// for this we want the "smallest" area that capture all of the image
-function mk_match_measure_img(pre, ctrl_f, test_n) {
-  function measure(constraint_middle) {
+// project the constraint B onto the feasible image set Bf
+// given a controller, try to satisfy it while being as close to B as possible
+function mk_project_img_measure(pre, B, ctrl_f, test_n) {
+  function measure(constraint_candidate) {
     var num_sat = 0
     for (var i = 0; i < test_n; i++) {
       var rand_state_a = pre.concrete_sample()
       var state_fa = simulate(rand_state_a, ctrl_f, 5000)
-      num_sat += constraint_middle.sat(constraint_middle.abstraction(state_fa))
+      num_sat += constraint_candidate.sat(constraint_candidate.abstraction(state_fa))
     }
-    // if it contains all the points of the image, return -area (bigger value
-    // better i.e smaller area) if it doesn't, it should be really bad
-    return -100 * (test_n - num_sat) - constraint_middle.area()
+    // penalize constraint for number of unsat points.
+    // if all point are satisfied, try to get close to B
+    return -100 * (test_n - num_sat) - constraint_dist(constraint_candidate, B)
   }
   return measure
 }
 
-// measure match-ness of pre-image
-// higher score the better
-// for this we want the "biggest" area that capture all of pre-image
-function mk_match_measure_preimg(post, ctrl_g, test_n) {
-  function measure(constraint_middle) {
+// project the constraint B onto the feasible preimage set Bg
+// given a controller, try to satisfy it while being as close to B as possible
+function mk_project_preimg_measure(post, B, ctrl_g, test_n) {
+  function measure(constraint_candidate) {
     var num_sat = 0
     for (var i = 0; i < test_n; i++) {
-      var rand_state_b = constraint_middle.concrete_sample()
+      var rand_state_b = constraint_candidate.concrete_sample()
       var state_gb = simulate(rand_state_b, ctrl_g, 5000)
       num_sat += post.sat(post.abstraction(state_gb))
     }
-    // if it contains all pt of image, it's area, bigger better
-    // else it gets heavily penalized by the number of unsat points
-    return -100 * (test_n - num_sat) + constraint_middle.area()
+    // peanalize constraint for number of unsat poitns
+    // if all set, try to get close to B
+    return -100 * (test_n - num_sat) - constraint_dist(constraint_candidate, B)
   }
   return measure
 }

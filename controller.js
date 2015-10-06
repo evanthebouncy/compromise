@@ -7,9 +7,9 @@ function mk_ctrl_f(params) {
   }
   // random params for seeding
   if (params.length == 0) {
-    params = [ randR(-0.0005, 0.0005),
-               randR(-0.0005, 0.0005),
-               randR(-0.005, 0.005),
+    params = [ randR(-1.0, 1.0),
+               randR(-0.05, 0.05),
+               randR(-0.05, 0.05),
                randR(-0.6, 0.6)
              ]
   }
@@ -22,9 +22,9 @@ function mk_ctrl_f(params) {
       this.terminated = false
     },
     spawn_child : function() {
-      var delta_vect = [ randR(-0.0001, 0.0001),
-                         randR(-0.0001, 0.0001),
-                         randR(-0.001, 0.001),
+      var delta_vect = [ randR(-0.1, 0.1),
+                         randR(-0.01, 0.01),
+                         randR(-0.01, 0.01),
                          randR(-0.06, 0.06)
                        ]
       var spawn_params = vadd(delta_vect, this.params)
@@ -47,8 +47,9 @@ function mk_ctrl_f(params) {
       var boxA = bodies[0]
       var abs_state = constraint_A.abstraction(bodies)
       // console.log("abs state ", abs_state)
-      var action_state = [abs_state[0], abs_state[1], 1.0]
-      var front_params = [this.params[0], this.params[1], this.params[2]]
+      var addon = this.params[0]
+      var action_state = [Math.sqrt(Math.abs(addon * abs_state[0] + abs_state[1])), 1.0]
+      var front_params = [this.params[1], this.params[2]]
       var force = {x: 0.0, y: vdot(front_params, action_state)}  
 //      console.log("applying forcei ", force)
       // modify states

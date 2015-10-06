@@ -127,8 +127,8 @@ function Start() {
   }
 
   // initialize some starting points
-  // var constraint_B = mk_constraint_B([6,6,6,6,6,6])
-  var constraint_B = mk_constraint_B([-0.2507706522126682, 0.5908728351932949, -4.519418032607064, -0.27293739386368543])
+  var constraint_B = mk_constraint_B([6,6,6,6,6,6])
+  // var constraint_B = mk_constraint_B([-0.2507706522126682, 0.5908728351932949, -4.519418032607064, -0.27293739386368543])
   var constraint_img = mk_constraint_B([])
   var constraint_preimg = mk_constraint_B([])
   console.log("initial constraint_B guess: ", constraint_B.params)
@@ -154,51 +154,60 @@ function Start() {
     }
     simulate_and_render(the_state_b, ctrl_g, 8000, true, term_cb_f)
   });
-  $("#visualize_constraint_img").click( function() {
-    display_constraint(constraint_img)
-  });
-  $("#visualize_constraint_preimg").click( function() {
-    display_constraint(constraint_preimg)
-  });
-  $("#visualize_constraint_mid").click( function() {
-    display_constraint(constraint_B)
-  });
   $("#animate_fg").click( function() {
     var ctrl_fg = mk_ctrl_fg(ctrl_f, ctrl_g)
     var the_state_a = constraint_A.concrete_sample()
     simulate_and_render(the_state_a, ctrl_fg, 3000, false, function(x){})
   });
+  $("#visualize_img").click( function() {
+    display_constraint(constraint_img)
+  });
+  $("#visualize_preimg").click( function() {
+    display_constraint(constraint_preimg)
+  });
 
   // for training
-  function train_f() {
-    console.log("# # # training f # # #")
-    var measure = mk_measurer(constraint_A, constraint_B, 150) 
-    ctrl_f = train(mk_ctrl_f, measure, 20, 5, ctrl_f)
-    console.log("# # # training f result: ", ctrl_f.params)
+  function project_Bf() {
+    console.log("# # # projecting onto Bf # # #")
+    console.log("# training f ...") 
+    var measure_f = mk_measurer(constraint_A, constraint_B, 150) 
+    ctrl_f = train(mk_ctrl_f, measure_f, 20, 3, ctrl_f)
+    console.log("# f result: ", ctrl_f.params)
     console.log("")
+    console.log("# projecting ...")
+    var project_img_measure = mk_project_img_measure(constraint_A, constraint_B, ctrl_f, 200)
+    constraint_img = train(mk_constraint_B, project_img_measure, 20, 5, constraint_img)
+    console.log("# img result: ", constraint_img.params)
+    constraint_B = constraint_img
+    console.log("\n")
   }
-  function train_g() {
-    console.log("# # # training g # # #")
-    var measure = mk_measurer(constraint_B, constraint_C, 150) 
-    ctrl_g = train(mk_ctrl_g, measure, 20, 5, ctrl_g)
-    console.log("# # # training g result: ", ctrl_g.params)
+  function project_Bg() {
+    console.log("# # # projecting onto Bg # # #")
+    console.log("# training g ...") 
+    var measure_g = mk_measurer(constraint_B, constraint_C, 150) 
+    ctrl_g = train(mk_ctrl_g, measure_g, 20, 3, ctrl_g)
+    console.log("# g result: ", ctrl_g.params)
     console.log("")
+    console.log("# projecting ...")
+    var project_preimg_measure = mk_project_preimg_measure(constraint_C, constraint_B, 
+                                                           ctrl_g, 200)
+    constraint_preimg = train(mk_constraint_B, project_preimg_measure, 20, 5, constraint_preimg)
+    console.log("# preimg result: ", constraint_preimg.params)
+    constraint_B = constraint_preimg
+    console.log("\n")
   }
   function compromise() {
     console.log("# # # compromising f and g # # #")
-    var match_img_measure = mk_match_measure_img(constraint_A, ctrl_f, 200)
     var match_preimg_measure = mk_match_measure_preimg(constraint_C, ctrl_g, 200)
 
-    constraint_img = train(mk_constraint_B, match_img_measure, 20, 5, constraint_img)
     constraint_preimg = train(mk_constraint_B, match_preimg_measure, 20, 5, constraint_preimg)
 
     constraint_B = interpolate(constraint_img, constraint_preimg)
     console.log("# # # compromising f g result: ", constraint_B.params)
     console.log("")
   }
-  $("#train_f").click( function() { train_f() });
-  $("#train_g").click( function() { train_g() });
-  $("#compromise").click( function() { compromise() });
+  $("#project_Bf").click( function() { project_Bf() });
+  $("#project_Bg").click( function() { project_Bg() });
 
 //  var boss_measure = mk_measurer (abstract_state_A, predicate_A, 
 //                             abstract_state_C, predicate_C, 1000)
