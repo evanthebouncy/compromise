@@ -1,92 +1,95 @@
 // params are theta_J used for jumping
 // pred is the predicate of the function's target post condition
-function mk_ctrl_f(params) {
-  // default params for testing
-  if (params.length == 6) {
-    params  = [-0.00005, 0.00055, 0.000, 0.0]
-  }
-  // random params for seeding
-  if (params.length == 0) {
-    params = [ randR(-1.0, 1.0),
-               randR(-0.05, 0.05),
-               randR(-0.05, 0.05),
-               randR(-0.6, 0.6),
-               randR(-0.6, 0.6)
-             ]
-  }
-  var ctrl_f = {
-    has_run : false,
-    terminated : false,
-    params : params,
-    clear : function () {
-      this.has_run = false
-      this.terminated = false
-    },
-    spawn_child : function() {
-      var delta_vect = [ randR(-0.1, 0.1),
-                         randR(-0.01, 0.01),
-                         randR(-0.01, 0.01),
-                         randR(-0.06, 0.06),
-                         randR(-0.06, 0.06)
-                       ]
-      var spawn_params = vadd(delta_vect, this.params)
-      return mk_ctrl_f(spawn_params)
-    },
-    cross_over : function(other) {
-      var ret_param = []
-      for (var i = 0; i < this.params.length; i++) {
-        if (Math.random() > 0.5) {
-          ret_param.push(this.params[i])
+function mk_mk_f(constr) {
+  function mk_ctrl_f(params) {
+    // default params for testing
+    if (params.length == 6) {
+      params  = [-0.00005, 0.00055, 0.000, 0.0]
+    }
+    // random params for seeding
+    if (params.length == 0) {
+      params = [ randR(-1.0, 1.0),
+                 randR(-0.05, 0.05),
+                 randR(-0.05, 0.05),
+                 randR(-0.6, 0.6),
+                 randR(-0.6, 0.6)
+               ]
+    }
+    var ctrl_f = {
+      has_run : false,
+      terminated : false,
+      params : params,
+      clear : function () {
+        this.has_run = false
+        this.terminated = false
+      },
+      spawn_child : function() {
+        var delta_vect = [ randR(-0.1, 0.1),
+                           randR(-0.01, 0.01),
+                           randR(-0.01, 0.01),
+                           randR(-0.06, 0.06),
+                           randR(-0.06, 0.06)
+                         ]
+        var spawn_params = vadd(delta_vect, this.params)
+        return mk_ctrl_f(spawn_params)
+      },
+      cross_over : function(other) {
+        var ret_param = []
+        for (var i = 0; i < this.params.length; i++) {
+          if (Math.random() > 0.5) {
+            ret_param.push(this.params[i])
+          }
+          else {
+            ret_param.push(other.params[i])
+          }
         }
-        else {
-          ret_param.push(other.params[i])
+        return mk_ctrl_f(ret_param)
+      },
+      // apply force and set terminate time
+      apply_force : function (bodies) {
+        var boxA = bodies[0]
+        var abs_state = constraint_A.abstraction(bodies)
+        // console.log("abs state ", abs_state)
+        var addon = this.params[0]
+        var action_state = [Math.sqrt(Math.abs(addon * abs_state[0] + abs_state[1])), 1.0]
+        var front_params = [this.params[1], this.params[2]]
+        var force = {x: 0.0, y: vdot(front_params, action_state)}  
+  //      console.log("applying forcei ", force)
+        // modify states
+        Body.applyForce(boxA, boxA.position, force)
+      },
+      // given a state, what should I act on? state is given as engine.world.bodies
+      act : function (bodies, time) {
+        if (!this.has_run) {
+          this.apply_force(bodies, time)
+          this.has_run = true
         }
-      }
-      return mk_ctrl_f(ret_param)
-    },
-    // apply force and set terminate time
-    apply_force : function (bodies) {
-      var boxA = bodies[0]
-      var abs_state = constraint_A.abstraction(bodies)
-      // console.log("abs state ", abs_state)
-      var addon = this.params[0]
-      var action_state = [Math.sqrt(Math.abs(addon * abs_state[0] + abs_state[1])), 1.0]
-      var front_params = [this.params[1], this.params[2]]
-      var force = {x: 0.0, y: vdot(front_params, action_state)}  
-//      console.log("applying forcei ", force)
-      // modify states
-      Body.applyForce(boxA, boxA.position, force)
-    },
-    // given a state, what should I act on? state is given as engine.world.bodies
-    act : function (bodies, time) {
-      if (!this.has_run) {
-        this.apply_force(bodies, time)
-        this.has_run = true
-      }
-    },
-    // a greedy algorithm that attempts to terminate closest to the first best state
-    terminate : function (bodies) {
-      if (!this.has_run) {return false}
+      },
+      // a greedy algorithm that attempts to terminate closest to the first best state
+      terminate : function (bodies) {
+        if (!this.has_run) {return false}
 
-      var boxA = bodies[0]
-      var y_velo = bodies[0].velocity.y
-
-      var abs_state = constraint_A.abstraction(bodies)
-      // console.log("abs state ", abs_state)
-      var addon = this.params[0]
-      var action_state = [Math.sqrt(Math.abs(addon * abs_state[0] + abs_state[1])), 1.0]
-      var back_params = [this.params[3], this.params[4]]
-      var term_velo = vdot(action_state, back_params)
-
-      if (y_velo > term_velo && this.has_run){
-        this.terminated = true
-        return true
+//        var boxA = bodies[0]
+//        var y_velo = bodies[0].velocity.y
+//
+//        var abs_state = constraint_A.abstraction(bodies)
+//        // console.log("abs state ", abs_state)
+//        var addon = this.params[0]
+//        var action_state = [Math.sqrt(Math.abs(addon * abs_state[0] + abs_state[1])), 1.0]
+//        var back_params = [this.params[3], this.params[4]]
+//        var term_velo = vdot(action_state, back_params)
+//
+//        if (y_velo > term_velo && this.has_run){
+        if (constr.sat(constr.abstraction(bodies)) > 0.95 ) {
+          this.terminated = true
+          return true
+        }
       }
     }
+    return ctrl_f
   }
-  return ctrl_f
+  return mk_ctrl_f
 }
-
 
 // params are theta_J used for jumping
 // pred is the predicate of the function's target post condition

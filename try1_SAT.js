@@ -132,7 +132,7 @@ function Start() {
   var constraint_img = mk_constraint_B([])
   var constraint_preimg = mk_constraint_B([])
   console.log("initial constraint_B guess: ", constraint_B.params)
-  var ctrl_f = mk_ctrl_f([])
+  var ctrl_f = mk_mk_f(constraint_B)([])
   var ctrl_g = mk_ctrl_g([]) 
 
   // for visualizing the controller and the compsoed controller
@@ -171,6 +171,7 @@ function Start() {
     console.log("# # # projecting onto Bf # # #")
     console.log("# training f ...") 
     var measure_f = mk_measurer(constraint_A, constraint_B, 150) 
+    var mk_ctrl_f = mk_mk_f(constraint_B)
     ctrl_f = train(mk_ctrl_f, measure_f, 30, 8, ctrl_f)
     console.log("# f result: ", ctrl_f.params)
     console.log("")
@@ -195,16 +196,6 @@ function Start() {
     console.log("# preimg result: ", constraint_preimg.params)
     constraint_B = constraint_preimg
     console.log("\n")
-  }
-  function compromise() {
-    console.log("# # # compromising f and g # # #")
-    var match_preimg_measure = mk_match_measure_preimg(constraint_C, ctrl_g, 200)
-
-    constraint_preimg = train(mk_constraint_B, match_preimg_measure, 20, 5, constraint_preimg)
-
-    constraint_B = interpolate(constraint_img, constraint_preimg)
-    console.log("# # # compromising f g result: ", constraint_B.params)
-    console.log("")
   }
   $("#project_Bf").click( function() { project_Bf() });
   $("#project_Bg").click( function() { project_Bg() });

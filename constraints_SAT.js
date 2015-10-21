@@ -115,7 +115,7 @@ function mk_constraint_B(params) {
     //     return 0
     //   }
     // },
-
+    
     sat : function(state_B_vect) {
       var diffX = state_B_vect[0]
       var diffY1 = this.params[0] * diffX + this.gap
