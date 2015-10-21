@@ -198,9 +198,9 @@ function interpolate(B1, B2) {
 function constraint_dist(B1, B2) {
   var param1 = B1.params
   var param2 = B2.params
-  ret = 0.0
+  ret = 1.0
   for (var i = 0; i < param1.length; i++) {
-    ret += Math.abs(param1[i] - param2[i])
+    ret *= Math.abs(param1[i] - param2[i])
   }
   return ret
 }

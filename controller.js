@@ -10,6 +10,7 @@ function mk_ctrl_f(params) {
     params = [ randR(-1.0, 1.0),
                randR(-0.05, 0.05),
                randR(-0.05, 0.05),
+               randR(-0.6, 0.6),
                randR(-0.6, 0.6)
              ]
   }
@@ -25,6 +26,7 @@ function mk_ctrl_f(params) {
       var delta_vect = [ randR(-0.1, 0.1),
                          randR(-0.01, 0.01),
                          randR(-0.01, 0.01),
+                         randR(-0.06, 0.06),
                          randR(-0.06, 0.06)
                        ]
       var spawn_params = vadd(delta_vect, this.params)
@@ -65,8 +67,18 @@ function mk_ctrl_f(params) {
     // a greedy algorithm that attempts to terminate closest to the first best state
     terminate : function (bodies) {
       if (!this.has_run) {return false}
+
+      var boxA = bodies[0]
       var y_velo = bodies[0].velocity.y
-      if (y_velo > this.params[3] && this.has_run){
+
+      var abs_state = constraint_A.abstraction(bodies)
+      // console.log("abs state ", abs_state)
+      var addon = this.params[0]
+      var action_state = [Math.sqrt(Math.abs(addon * abs_state[0] + abs_state[1])), 1.0]
+      var back_params = [this.params[3], this.params[4]]
+      var term_velo = vdot(action_state, back_params)
+
+      if (y_velo > term_velo && this.has_run){
         this.terminated = true
         return true
       }
