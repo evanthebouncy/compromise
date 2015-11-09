@@ -129,8 +129,8 @@ function Start() {
   // initialize some starting points
   var constraint_B = mk_constraint_B([6,6,6,6,6,6])
   // var constraint_B = mk_constraint_B([-0.2507706522126682, 0.5908728351932949, -4.519418032607064, -0.27293739386368543])
-  var constraint_img = mk_constraint_B([])
-  var constraint_preimg = mk_constraint_B([])
+  var constraint_img = constraint_B
+  var constraint_preimg = constraint_B
   console.log("initial constraint_B guess: ", constraint_B.params)
   var ctrl_f = mk_mk_f(constraint_B)([])
   var ctrl_g = mk_ctrl_g([]) 
