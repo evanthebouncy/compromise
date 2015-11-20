@@ -17,28 +17,6 @@ function clear_world() {
   engine.events = {}
 }
 
-// animate until timeout or termination
-function animate(ctrl, timeout, terminate_on_ctrl, term_callback) {
-  var n = timeout / deltaT
-  var cur_frame = 0
-  function animate1() {
-    var cur_state = engine.world.bodies
-    if (ctrl.terminate(cur_state) && terminate_on_ctrl) {
-      term_callback(cur_state)
-      return;
-    }
-    if (cur_frame < n) {
-      Runner.tick(runner, engine, deltaT)
-      cur_frame += 1
-      setTimeout(animate1, deltaT)
-    } else {
-      console.log("end animate")
-      term_callback(cur_state)
-    }
-  }
-  animate1()
-}
-
 // use the hand to grab objects
 function grasp(hand, objs, grasp_constr) {
   if (grasp_constr == null) {
@@ -64,84 +42,53 @@ function ungrasp(old_constr) {
   return null
 }
 
-// create grasping world
-function mk_grasping_world(arm_state) {
-  // floor and a box
-  var floor   = Bodies.rectangle(400, 550, 800, 100, {isStatic:true});
-  var boxv1 = Bodies.rectangle(400-30, 430-30, 5, 5, {density: 0.0001})
-  var boxv2 = Bodies.rectangle(400-30, 430+30, 5, 5, {density: 0.0001})
-  var boxv3 = Bodies.rectangle(400+30, 430-30, 5, 5, {density: 0.0001})
-  var boxv4 = Bodies.rectangle(400+30, 430+30, 5, 5, {density: 0.0001})
-  var boxc1 = Constraint.create({bodyA: boxv1, bodyB: boxv2})
-  var boxc2 = Constraint.create({bodyA: boxv1, bodyB: boxv3})
-  var boxc3 = Constraint.create({bodyA: boxv1, bodyB: boxv4})
-  var boxc4 = Constraint.create({bodyA: boxv2, bodyB: boxv3})
-  var boxc5 = Constraint.create({bodyA: boxv2, bodyB: boxv4})
-  var boxc6 = Constraint.create({bodyA: boxv3, bodyB: boxv4})
-  boxc2.render.lineWidth = 5;
-  
-  // an arm to moove the box
-  // objects of arm
-  var arm_top_jt1 = Bodies.rectangle(400, 50, 20, 20, {isStatic:true});
-  var arm_top_jt2 = Bodies.rectangle(250, 50, 20, 20, {isStatic:true});
-  var arm_elbow = Bodies.rectangle(250, 300, 20, 20)
-  var arm_hand = Bodies.circle(400, 400, 5)
-  // constraints on arm
-  var arm_bone1 = Constraint.create({bodyA: arm_top_jt1, bodyB: arm_elbow})
-  var arm_bone2 = Constraint.create({bodyA: arm_elbow, bodyB: arm_hand})
-  var arm_mus1 = Constraint.create({bodyA: arm_top_jt2, bodyB: arm_elbow})
-  var arm_mus2 = Constraint.create({bodyA: arm_top_jt1, bodyB: arm_hand})
-
-  arm_state.l1 = arm_mus1.length
-  arm_state.l2 = arm_mus2.length
-
-  var state = [boxv1, boxv2, boxv3, boxv4, 
-               boxc1, boxc2, boxc3, boxc4, boxc5, boxc6,
-               floor,
-               arm_top_jt1, arm_top_jt2, arm_elbow, arm_hand,
-               arm_bone1, arm_bone2, arm_mus1, arm_mus2]
-  var grasp_constr = null
-
-  // add state to world
-  World.add(engine.world, state)
-  Runner.run(runner, engine)
-  Events.on(engine, 'afterUpdate', function() {
-    arm_mus1.length = arm_state.l1
-    arm_mus2.length = arm_state.l2
-    if (arm_state.grasp == true) {
-      grasp_constr = grasp(arm_hand, [boxv1, boxv2, boxv3, boxv4], grasp_constr)
+// animate until timeout or termination
+function animate(ctrl, timeout, terminate_on_ctrl, term_callback) {
+  var n = timeout / deltaT
+  var cur_frame = 0
+  function animate1() {
+    var cur_state = engine.world.bodies
+    if (ctrl.terminate(cur_state) && terminate_on_ctrl) {
+      term_callback(cur_state)
+      return;
     }
-    if (arm_state.grasp == false) {
-      grasp_constr = ungrasp(grasp_constr)
+    if (cur_frame < n) {
+      Runner.tick(runner, engine, deltaT)
+      cur_frame += 1
+      setTimeout(animate1, deltaT)
+    } else {
+      console.log("end animate")
+      term_callback(cur_state)
     }
-  });
-  return [arm_mus1, arm_mus2]
+  }
+  animate1()
 }
 
 // for displaying a particular controller's behaviour
-function simulate_and_render(concrete_state, controller, timeout, 
+function simulate_and_render(abstract_state, controller, timeout, 
                              terminate_on_ctrl, term_callback) {
+  var concrete_state = abstract_state.concretize()
+  var world_objs = concrete_state.world_objs
   // clear the world and controller
   clear_world()
   controller.clear()
   // add all of the bodies to the world
-  World.add(engine.world, concrete_state)
+  World.add(engine.world, world_objs)
 
   // bind 'afterUpdate' event to call the controller at every update
   // to act based on the current simulation state
   Events.on(engine, 'afterUpdate', function() {
-    var bodies = engine.world.bodies
-    controller.act(bodies)
+    controller.act(concrete_state.actuators, concrete_state.perceptions)
   });
   animate(controller, timeout, terminate_on_ctrl, term_callback)
 }
 
 // for just showing a configuration
-function display(concrete_state) {
+function display(world_objs) {
   // clear the world and controller
   clear_world()
   // add all of the bodies to the world
-  World.add(engine.world, concrete_state)
+  World.add(engine.world, world_objs)
   Runner.tick(runner, engine, 0.0)
 }
 
@@ -187,11 +134,16 @@ function Start() {
     runner = Runner.create()
   }
 
-  var l1_bnd = [200, 400]
-  var l2_bnd = [200, 400]
-  var arm_state = {l1:null, l2:null, grasp:false}
-  var mus = mk_grasping_world(arm_state)
+//  var l1_bnd = [200, 400]
+//  var l2_bnd = [200, 400]
+//  var arm_state = {l1:null, l2:null, grasp:false}
+//  var mus = mk_grasping_world(arm_state)
 
+  var A = Abar([300, 500])
+  // display(concA.world_objs)
+  // console.log(all_static(concA.world_objs))
+
+  simulate_and_render(A, test_f1, 10000, false, function(){})
   $("#rmove").click( function() {
   
   });
