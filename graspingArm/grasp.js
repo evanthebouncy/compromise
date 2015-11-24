@@ -139,11 +139,15 @@ function Start() {
 //  var arm_state = {l1:null, l2:null, grasp:false}
 //  var mus = mk_grasping_world(arm_state)
 
-  var A = Abar([300, 500])
+  var A = Abar([300, 500], [250, 400])
+  var B = Bbar([300, 500], [300, 500], [250, 500])
+  var C = Cbar([300, 500], [300, 500], [250, 400])
+  var D = Dbar([300, 500])
   // display(concA.world_objs)
   // console.log(all_static(concA.world_objs))
 
-  simulate_and_render(A, test_f1, 10000, false, function(){})
+  // console.log(A.concretize())
+  simulate_and_render(A, null_ctrl, 10000, false, function(){})
   $("#rmove").click( function() {
   
   });

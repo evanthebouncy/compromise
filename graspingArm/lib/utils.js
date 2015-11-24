@@ -45,6 +45,22 @@ function vadd(vx, vy) {
   return ret
 }
 
+function vsub(vx, vy) {
+  ret = []
+  for (var i = 0; i < vx.length; i++) {
+    ret.push(vx[i] - vy[i])
+  }
+  return ret
+}
+
+function vscale(vx, a){
+  ret = []
+  for (var i = 0; i < vx.length; i++) {
+    ret.push(vx[i] * a)
+  }
+  return ret
+}
+
 function mag(v) {
   ret = 0
   for (var i = 0; i < v.length; i++) {
