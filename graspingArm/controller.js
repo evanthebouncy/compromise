@@ -5,13 +5,15 @@ var null_ctrl = {
   terminate : function(bodies) {}
 }
 
-function set_arm (mus, l1, l2) {
+// gradually move the arm in the intended direction
+// returns true if sufficiently close
+function set_arm$ (world_objs, l1, l2) {
   safety_bound = [100, 400]
   // add safety constraints so we don't exploded our arm
   l1 = Math.min(Math.max(l1, safety_bound[0]), safety_bound[1])
   l2 = Math.min(Math.max(l2, safety_bound[0]), safety_bound[1])
-  var mus1 = mus[0]
-  var mus2 = mus[1]
+  var mus1 = world_objs.arm_mus1
+  var mus2 = world_objs.arm_mus2
   if (mus1.length > l1) {
     mus1.length -= 1
   } else {
@@ -21,6 +23,12 @@ function set_arm (mus, l1, l2) {
     mus2.length -= 1
   } else {
     mus2.length += 1
+  }
+
+  if (Math.abs(l1 - mus1.length) < 2 && Math.abs(l2 - mus2.length) < 2){
+    return true
+  } else {
+    return false
   }
 }
 
@@ -64,19 +72,37 @@ var test_f1 = {
   terminate : function(things) {return false}
 }
 
-var f_AB = {
-  theta : [0, 150, 0, 400],
-  clear : function() {},
-  act : function(actuators, perceptions, pre_cond, post_cond) {
-    var box_x = 0.5 * (post_cond.box_down_x[0] + post_cond.box_down_x[1])
-    var l1 = box_x * this.theta[0] + this.theta[1]
-    var l2 = box_x * this.theta[2] + this.theta[3]
-    set_arm(actuators, l1, l2)
-    if (post_cond.poschecks(perceptions)){
-      ungrasp(actuators[2])
+function make_fAB(theta) {
+  var f_AB = {
+    clear : function() {
+      this.has_put = false
+      this.has_term = false
+    },
+    has_put : false,
+    has_term : false,
+    act : function(world_objs, A, B) {
+      if (! this.has_put){
+        var target_x = (B.box_down_x[0] + B.box_down_x[1]) * 0.5
+        // var target_y = B.box_yy
+        var l1 = target_x * theta[0] + theta[1]
+        var l2 = target_x * theta[2] + theta[3]
+        var arm_is_set = set_arm$(world_objs, l1, l2)
+        if (arm_is_set) {
+          ungrasp$ (world_objs)
+          this.has_put = true
+        }
+      } else {
+        var arm_is_returned = set_arm$(world_objs, mus1_l, mus2_l)
+        if (arm_is_returned) {
+          self.has_term = true
+        }
+      }
+    },
+    terminate : function(things) {
+      return self.has_term
     }
-  },
-  terminate : function(things) {return false}
-}
+  }
 
+  return f_AB
+}
 

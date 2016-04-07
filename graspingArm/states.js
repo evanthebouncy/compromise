@@ -46,10 +46,10 @@ function generate_box$(world_objs, box_x, box_y, box_dir){
   vec_v2 = vadd([box_x, box_y], vscale([normalized_dir[1], -normalized_dir[0]], lll))
   vec_v4 = vadd([box_x, box_y], vscale([normalized_dir[1], -normalized_dir[0]], -1 * lll))
 
-  world_objs.boxv1 = Bodies.rectangle(vec_v1[0], vec_v1[1], 5, 5, {density: 0.0001})
-  world_objs.boxv2 = Bodies.rectangle(vec_v2[0], vec_v2[1], 5, 5, {density: 0.0001})
-  world_objs.boxv3 = Bodies.rectangle(vec_v3[0], vec_v3[1], 5, 5, {density: 0.0001})
-  world_objs.boxv4 = Bodies.rectangle(vec_v4[0], vec_v4[1], 5, 5, {density: 0.0001})
+  world_objs.boxv1 = Bodies.rectangle(vec_v1[0], vec_v1[1], 5, 5, {density: 0.001})
+  world_objs.boxv2 = Bodies.rectangle(vec_v2[0], vec_v2[1], 5, 5, {density: 0.001})
+  world_objs.boxv3 = Bodies.rectangle(vec_v3[0], vec_v3[1], 5, 5, {density: 0.001})
+  world_objs.boxv4 = Bodies.rectangle(vec_v4[0], vec_v4[1], 5, 5, {density: 0.001})
   world_objs.boxc1 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv2})
   world_objs.boxc2 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv3})
   world_objs.boxc3 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv4})
@@ -83,103 +83,35 @@ function Abar() {
 
 // abstr state space for B
 // hand down box down, vertex 1 on left
-function Bbar(box_down_x, hand_down_x, hand_down_y) {
+function Bbar(box_down_x) {
+  var box_yy = 464
   var B = {
     box_down_x : box_down_x,
-    hand_down_x : hand_down_x,
-    hand_down_y : hand_down_y
+    box_yy : box_yy
   }
 
   // concretization of state B
   B.concretize = function() {
     // pick a random x position based on box_x
     var box_xx = randI(box_down_x[0], box_down_x[1])
-    // pick a random hand_x and hand_y, 
-    var hand_x = randI(hand_down_x[0], hand_down_x[1])
-    var hand_y = randI(hand_down_y[0], hand_down_y[1])
 
     var world_objs = {}
+    generate_world$(world_objs)
+    generate_arm$(world_objs)
 
-    // floor and a box
-    world_objs.floor = Bodies.rectangle(400, 550, 800, 100, {isStatic:true});
-    world_objs.boxv1 = Bodies.rectangle(box_xx-30, 464-30, 5, 5, {density: 0.0001})
-    world_objs.boxv2 = Bodies.rectangle(box_xx-30, 464+30, 5, 5, {density: 0.0001})
-    world_objs.boxv3 = Bodies.rectangle(box_xx+30, 464-30, 5, 5, {density: 0.0001})
-    world_objs.boxv4 = Bodies.rectangle(box_xx+30, 464+30, 5, 5, {density: 0.0001})
-    world_objs.boxc1 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv2})
-    world_objs.boxc2 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv3})
-    world_objs.boxc3 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv4})
-    world_objs.boxc4 = Constraint.create({bodyA: world_objs.boxv2, bodyB: world_objs.boxv3})
-    world_objs.boxc5 = Constraint.create({bodyA: world_objs.boxv2, bodyB: world_objs.boxv4})
-    world_objs.boxc6 = Constraint.create({bodyA: world_objs.boxv3, bodyB: world_objs.boxv4})
-    world_objs.boxc2.render.lineWidth = 5;
-    
-    // an arm to moove the box
-    // objects of arm
-    world_objs.arm_top_jt1 = Bodies.rectangle(400, 50, 20, 20, {isStatic:true});
-    world_objs.arm_top_jt2 = Bodies.rectangle(250, 50, 20, 20, {isStatic:true});
-    world_objs.arm_hand = Bodies.circle(hand_x, hand_y, 5)
+    var lll = Math.sqrt(Math.pow(60, 2) * 2) / 2
+    generate_box$(world_objs, box_xx, box_yy, [-1,-1])
 
-    var bone_l = 250
-    var elbow_pos = find_elbow([400, 50], [hand_x, hand_y], bone_l)
-    world_objs.arm_elbow = Bodies.rectangle(elbow_pos[0], elbow_pos[1], 20, 20)
-    // constraints on arm
-    world_objs.arm_bone1 = Constraint.create({bodyA: world_objs.arm_top_jt1, bodyB: world_objs.arm_elbow})
-    world_objs.arm_bone2 = Constraint.create({bodyA: world_objs.arm_elbow, bodyB: world_objs.arm_hand})
-    world_objs.arm_mus1 = Constraint.create({bodyA: world_objs.arm_top_jt2, bodyB: world_objs.arm_elbow})
-    world_objs.arm_mus2 = Constraint.create({bodyA: world_objs.arm_top_jt1, bodyB: world_objs.arm_hand})
-
-    // var world_objs = [boxv1, boxv2, boxv3, boxv4, 
-    //                  boxc1, boxc2, boxc3, boxc4, boxc5, boxc6,
-    //                  floor,
-    //                  arm_top_jt1, arm_top_jt2, arm_elbow, arm_hand,
-    //                  arm_bone1, arm_bone2, arm_mus1, arm_mus2]
-    
-    var conc_B = {
-      world_objs : world_objs,
-      actuators : [world_objs.arm_mus1, world_objs.arm_mus2],
-      perceptions : world_objs
-    }
-    return conc_B
+    return world_objs
   }
 
   B.checks = function(world_objs){
-  var hand_x = world_objs.arm_hand.position.x
-  var hand_y = world_objs.arm_hand.position.y
-  var box_x = world_objs.boxv1.position.x
-  var box_y = world_objs.boxv1.position.y
-  return world_objs.grasp == null & 
-         B.hand_down_x[0] <= hand_x &
-         B.hand_down_x[1] >= hand_x &
-         B.hand_down_y[0] <= hand_y &
-         B.hand_down_y[1] >= hand_y &
-         B.box_down_x[0] <= box_x &
-         B.box_down_x[1] >= box_x &
-         Math.abs(464-30 - box_y) < 10 
-  }
+    var box_x = 0.5 * (world_objs.boxv1.position.x + world_objs.boxv3.position.x)
+    var box_y = 0.5 * (world_objs.boxv1.position.y + world_objs.boxv3.position.y)
 
-  B.poschecks = function(world_objs){
-  var hand_x = world_objs.arm_hand.position.x
-  var hand_y = world_objs.arm_hand.position.y
-  var box_x = world_objs.boxv1.position.x
-  var box_y = world_objs.boxv1.position.y
-
-  console.log( B.hand_down_x[0] <= hand_x , B.hand_down_x, hand_x,
-         B.hand_down_x[1] >= hand_x ,
-         B.hand_down_y[0] <= hand_y ,
-         B.hand_down_y[1] >= hand_y ,
-         B.box_down_x[0] <= box_x ,
-         B.box_down_x[1] >= box_x ,
-         Math.abs(464-30 - box_y) < 10 )
-
-
-  return B.hand_down_x[0] <= hand_x &
-         B.hand_down_x[1] >= hand_x &
-         B.hand_down_y[0] <= hand_y &
-         B.hand_down_y[1] >= hand_y &
-         B.box_down_x[0] <= box_x &
-         B.box_down_x[1] >= box_x &
-         Math.abs(464-30 - box_y) < 10 
+    return B.box_down_x[0] <= box_x &
+           B.box_down_x[1] >= box_x &
+           Math.abs(B.box_yy - box_y) < 10 
   }
 
   return B

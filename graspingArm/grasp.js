@@ -35,11 +35,12 @@ function grasp(hand, objs, grasp_constr) {
   return grasp_constr
 }
 
-function ungrasp(old_constr) {
+function ungrasp$(world_objs) {
+  old_constr = world_objs.grasp
   if (old_constr != null) {
     World.remove(engine.world, old_constr)
   }
-  return null
+  world_objs.grasp = null
 }
 
 // animate until timeout or termination
@@ -48,9 +49,13 @@ function animate(ctrl, timeout, terminate_on_ctrl, term_callback) {
   var cur_frame = 0
   function animate1() {
     var cur_state = engine.world.bodies
+    // console.log("FDJK")
+    // console.log(ctrl.terminate(cur_state))
+
     if (ctrl.terminate(cur_state) && terminate_on_ctrl) {
-      term_callback(cur_state)
-      return;
+
+      console.log("end animate")
+      return term_callback(cur_state)
     }
     if (cur_frame < n) {
       Runner.tick(runner, engine, deltaT)
@@ -146,7 +151,7 @@ function Start() {
   mus2_l = 300
 
   var A = Abar()
-  var B = Bbar([200, 500], [200, 500], [400, 500])
+  var B = Bbar([200, 500])
   var C = Cbar([300, 500], [300, 500], [250, 400])
   var D = Dbar([300, 500])
   // display(concA.world_objs)
@@ -154,11 +159,13 @@ function Start() {
 
   // console.log(A.concretize())
   
+  f_AB = make_fAB([0.2, 100, 0.3, 400])
+
   $("#stateA").click( function() {
-    simulate_and_render(A, null_ctrl, B, 10000, false, function(){})
+    simulate_and_render(A, f_AB, B, 8000, true, function(){})
   });
   $("#stateB").click( function() {
-    simulate_and_render(B, null_ctrl, 10000, false, function(){})
+    simulate_and_render(B, null_ctrl, B, 10000, false, function(){})
   });
   $("#stateC").click( function() {
     simulate_and_render(C, null_ctrl, 10000, false, function(){})
