@@ -73,15 +73,17 @@ var test_f1 = {
 }
 
 function make_fAB(theta) {
+
+  var has_put = false
+  var has_term = false
+
   var f_AB = {
     clear : function() {
-      this.has_put = false
-      this.has_term = false
+      has_put = false
+      has_term = false
     },
-    has_put : false,
-    has_term : false,
     act : function(world_objs, A, B) {
-      if (! this.has_put){
+      if (! has_put){
         var target_x = (B.box_down_x[0] + B.box_down_x[1]) * 0.5
         // var target_y = B.box_yy
         var l1 = target_x * theta[0] + theta[1]
@@ -89,20 +91,57 @@ function make_fAB(theta) {
         var arm_is_set = set_arm$(world_objs, l1, l2)
         if (arm_is_set) {
           ungrasp$ (world_objs)
-          this.has_put = true
+          has_put = true
         }
       } else {
         var arm_is_returned = set_arm$(world_objs, mus1_l, mus2_l)
         if (arm_is_returned) {
-          self.has_term = true
+          has_term = true
         }
       }
     },
     terminate : function(things) {
-      return self.has_term
+      return has_term
     }
   }
 
   return f_AB
 }
 
+function make_fBC(theta) {
+
+  var has_pick = false
+  var has_term = false
+
+  var f_BC = {
+    clear : function() {
+      has_pick = false
+      has_term = false
+    },
+    has_pick : false,
+    has_term : false,
+    act : function(world_objs, B, C) {
+      if (! has_pick){
+        var target_x = box_position(world_objs)[0]
+        // var target_y = B.box_yy
+        var l1 = target_x * theta[0] + theta[1]
+        var l2 = target_x * theta[2] + theta[3]
+        var arm_is_set = set_arm$(world_objs, l1, l2)
+        if (arm_is_set) {
+          grasp$ (world_objs)
+          has_pick = true
+        }
+      } else {
+        var arm_is_returned = set_arm$(world_objs, mus1_l, mus2_l)
+        if (arm_is_returned) {
+          has_term = true
+        }
+      }
+    },
+    terminate : function(things) {
+      return has_term
+    }
+  }
+
+  return f_BC
+}

@@ -18,8 +18,10 @@ function clear_world() {
 }
 
 // use the hand to grab objects
-function grasp(hand, objs, grasp_constr) {
-  if (grasp_constr == null) {
+function grasp$(world_objs) {
+  if (world_objs.grasp == null) {
+    var objs = [world_objs.boxv1, world_objs.boxv2, world_objs.boxv3, world_objs.boxv4]
+    var hand = world_objs.arm_hand
     for (i = 0; i < objs.length; i++) { 
       var obj = objs[i]
       var vec = Matter.Vector.sub(hand.position, obj.position)
@@ -28,11 +30,11 @@ function grasp(hand, objs, grasp_constr) {
         var constr = Constraint.create({bodyA: hand, bodyB: obj})
         console.log(constr)
         World.add(engine.world, constr)
-        return constr
+        world_objs.grasp = constr
+        return
       }
     }
   }
-  return grasp_constr
 }
 
 function ungrasp$(world_objs) {
@@ -53,6 +55,7 @@ function animate(ctrl, timeout, terminate_on_ctrl, term_callback) {
     // console.log(ctrl.terminate(cur_state))
 
     if (ctrl.terminate(cur_state) && terminate_on_ctrl) {
+      console.log("WHAT",  ctrl.terminate(1))
 
       console.log("end animate")
       return term_callback(cur_state)
@@ -106,38 +109,40 @@ function display(world_objs) {
 }
 
 
-// // simulate the current controller behaviour on a concrete state
-// // assume: controller has an act function, which denote what to do on every frame
-// // assume: controller has a terminate function, which the simulation should end early
-// // assume: controller has a "clear" function, which clears of its internal states
-// // the time out is the maximum time a controller should be allowed to run
-// // return the result of simulation, i.e. the afterward concrete state
-// function simulate(concrete_state, controller, timeout) {
-//   // clear the world and controller
-//   clear_world()
-//   controller.clear()
-//   // add all of the bodies to the world
-//   World.add(engine.world, concrete_state)
+// simulate the current controller behaviour on a concrete state
+// assume: controller has an act function, which denote what to do on every frame
+// assume: controller has a terminate function, which the simulation should end early
+// assume: controller has a "clear" function, which clears of its internal states
+// the time out is the maximum time a controller should be allowed to run
+// return the result of simulation, i.e. the afterward concrete state
+function simulate$(world_objs, controller, pre, post, timeout) {
+  var world_bodies = []
+  for(var key in world_objs) {
+    world_bodies.push(world_objs[key]);
+  }
+  // clear the world and controller
+  clear_world()
+  controller.clear()
+  // add all of the bodies to the world
+  World.add(engine.world, world_bodies)
 
-//   // bind 'afterUpdate' event to call the controller at every update
-//   // to act based on the current simulation state
-//   Events.on(engine, 'afterUpdate', function() {
-//     var bodies = engine.world.bodies
-//     controller.act(bodies)
-//   });
+  // bind 'afterUpdate' event to call the controller at every update
+  // to act based on the current simulation state
+  Events.on(engine, 'afterUpdate', function() {
+    controller.act(world_objs, pre, post)
+  });
 
-//   // simulate the world w/o rendering in a loop
-//   // starting from the concrete state and initial time
-//   var elapsed_time = 0
-//   var conc_state = concrete_state
-//   // continue to simulate if not_terminate AND has_time_left
-//   while (!controller.terminate(conc_state) && elapsed_time < timeout) {
-//     elapsed_time += deltaT
-//     conc_state = engine.world.bodies
-//     Engine.update(engine, deltaT)
-//   }
-//   return engine.world.bodies
-// }
+  // simulate the world w/o rendering in a loop
+  // starting from the concrete state and initial time
+  var elapsed_time = 0
+  // continue to simulate if not_terminate AND has_time_left
+  while (!controller.terminate(123) && elapsed_time < timeout) {
+    elapsed_time += deltaT
+    conc_state = engine.world.bodies
+    Engine.update(engine, deltaT)
+  }
+  return world_objs
+}
 
 function Start() {
   if (engine == null) {
@@ -152,20 +157,22 @@ function Start() {
 
   var A = Abar()
   var B = Bbar([200, 500])
-  var C = Cbar([300, 500], [300, 500], [250, 400])
-  var D = Dbar([300, 500])
+  var C = Cbar(mus1_l, mus2_l)
   // display(concA.world_objs)
   // console.log(all_static(concA.world_objs))
 
   // console.log(A.concretize())
-  
   f_AB = make_fAB([0.2, 100, 0.3, 400])
 
   $("#stateA").click( function() {
-    simulate_and_render(A, f_AB, B, 8000, true, function(){})
+    world_objjs = A.concretize()
+    resultz = simulate$(world_objjs, f_AB, A, B, 8000)
+    console.log("A HA HA ", B.checks(resultz))
+    // simulate_and_render(A, f_AB, B, 8000, true, function(){})
   });
   $("#stateB").click( function() {
-    simulate_and_render(B, null_ctrl, B, 10000, false, function(){})
+    f_BC = make_fBC([0.3, 100, 0.3, 400])
+    simulate_and_render(B, f_BC, C, 8000, true, function(){})
   });
   $("#stateC").click( function() {
     simulate_and_render(C, null_ctrl, 10000, false, function(){})
