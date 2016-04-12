@@ -22,13 +22,12 @@ function grasp$(world_objs) {
   if (world_objs.grasp == null) {
     var objs = [world_objs.boxv1, world_objs.boxv2, world_objs.boxv3, world_objs.boxv4]
     var hand = world_objs.arm_hand
-    for (i = 0; i < objs.length; i++) { 
+    for (var i = 0; i < objs.length; i++) { 
       var obj = objs[i]
       var vec = Matter.Vector.sub(hand.position, obj.position)
       var l_grasp = Matter.Vector.magnitude(vec)
       if (l_grasp < 15) {
         var constr = Constraint.create({bodyA: hand, bodyB: obj})
-        console.log(constr)
         World.add(engine.world, constr)
         world_objs.grasp = constr
         return
@@ -152,28 +151,32 @@ function Start() {
     runner = Runner.create()
   }
 
+  // initialize some global variables *GASP*
   mus1_l = 150
   mus2_l = 300
 
   var A = Abar()
   var B = Bbar([200, 500])
-  var C = Cbar(mus1_l, mus2_l)
+  var C = Cbar()
   // display(concA.world_objs)
   // console.log(all_static(concA.world_objs))
 
   // console.log(A.concretize())
-  f_AB = make_fAB([0.2, 100, 0.3, 400])
+  var f_AB = make_fAB([0.2, 100, 0.3, 400])
+  var f_BC = make_fBC([0.3, 100, 0.3, 400])
+
 
   $("#stateA").click( function() {
-    world_objjs = A.concretize()
-    resultz = simulate$(world_objjs, f_AB, A, B, 8000)
-    console.log("A HA HA ", B.checks(resultz))
-    // simulate_and_render(A, f_AB, B, 8000, true, function(){})
+    var bess = learn_controller(A, make_fAB, B, [0.0, 100, 0.0, 100], [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[0, 500]], 20)
+    simulate_and_render(A, make_fAB(bess), B, 8000, true, function(){})
   });
+
   $("#stateB").click( function() {
-    f_BC = make_fBC([0.3, 100, 0.3, 400])
-    simulate_and_render(B, f_BC, C, 8000, true, function(){})
+    var bess = learn_pre(Bbar, f_BC, C, [100, 100], [[0, 500], [0, 500]], 20)
+    simulate_and_render(Bbar(bess), f_BC, C, 8000, true, function(){})
+    // simulate_and_render(B, f_BC, C, 8000, true, function(){})
   });
+
   $("#stateC").click( function() {
     simulate_and_render(C, null_ctrl, 10000, false, function(){})
   });

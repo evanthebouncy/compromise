@@ -144,7 +144,7 @@ function Bbar(box_down_x) {
 }
 
 
-function Cbar(mus1_l, mus2_l) {
+function Cbar() {
   var C = {}
 
   C.checks = function(world_objs) {

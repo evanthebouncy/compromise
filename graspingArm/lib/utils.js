@@ -77,3 +77,7 @@ function fitness_sort_fun(a, b) {
       return (a[0] < b[0]) ? -1 : 1;
   }
 }
+
+function randomreal(min, max) {
+    return Math.random() * (max - min) + min;
+}
