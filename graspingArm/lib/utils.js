@@ -81,3 +81,16 @@ function fitness_sort_fun(a, b) {
 function randomreal(min, max) {
     return Math.random() * (max - min) + min;
 }
+
+// update the range (binary search style) to half including the good point
+function get_half_range(score, good_point, range) {
+  ret = []
+  for (var i = 0; i < good_point.length; i++) {
+    var ptpt = good_point[i]
+    var rnrn = range[i]
+    var new_front = rnrn[0] * (1 - score) + ptpt * score
+    var new_back = ptpt * score + (1 - score) * rnrn[1]
+    ret.push([new_front, new_back])
+  }
+  return ret
+}

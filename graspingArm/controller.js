@@ -72,7 +72,7 @@ var test_f1 = {
   terminate : function(things) {return false}
 }
 
-function make_fAB(theta) {
+function make_fAB(theta, A, B) {
 
   var has_put = false
   var has_term = false
@@ -82,7 +82,7 @@ function make_fAB(theta) {
       has_put = false
       has_term = false
     },
-    act : function(world_objs, A, B) {
+    act : function(world_objs) {
       if (! has_put){
         var target_x = (B.box_down_x[0] + B.box_down_x[1]) * 0.5
         // var target_y = B.box_yy
@@ -108,7 +108,7 @@ function make_fAB(theta) {
   return f_AB
 }
 
-function make_fBC(theta) {
+function make_fBC(theta, B, C) {
 
   var has_pick = false
   var has_term = false
@@ -120,7 +120,7 @@ function make_fBC(theta) {
     },
     has_pick : false,
     has_term : false,
-    act : function(world_objs, B, C) {
+    act : function(world_objs) {
       if (! has_pick){
         var target_x = box_position(world_objs)[0]
         // var target_y = B.box_yy
@@ -130,10 +130,6 @@ function make_fBC(theta) {
         if (arm_is_set) {
           grasp$ (world_objs)
           has_pick = true
-        }
-      } else {
-        var arm_is_returned = set_arm$(world_objs, mus1_l, mus2_l)
-        if (arm_is_returned) {
           has_term = true
         }
       }
@@ -144,4 +140,28 @@ function make_fBC(theta) {
   }
 
   return f_BC
+}
+
+function make_compose(ctrl1, ctrl2, A, B, C) {
+  var compose = {
+    clear : function() {
+      ctrl1.clear()
+      ctrl2.clear()
+    },
+
+    act : function(world_objs) {
+      if (! ctrl1.terminate(1)) {
+        ctrl1.act(world_objs)
+      } else {
+        ctrl2.act(world_objs)
+      }
+    },
+
+    terminate : function(things) {
+      return ctrl2.terminate(1)
+    }
+
+  }
+
+  return compose
 }

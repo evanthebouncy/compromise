@@ -107,6 +107,11 @@ function Abar() {
 // abstr state space for B
 // hand down box down, vertex 1 on left
 function Bbar(box_down_x) {
+  if (box_down_x[0] > box_down_x[1]) {
+    var swp = box_down_x[0]
+    box_down_x[0] = box_down_x[1]
+    box_down_x[1] = swp
+  }
   var box_yy = 464
   var B = {
     box_down_x : box_down_x,
@@ -140,6 +145,16 @@ function Bbar(box_down_x) {
            is_orient_left > 0.95
   }
 
+  B.softchecks = function(world_objs){
+    var box_x = 0.5 * (world_objs.boxv1.position.x + world_objs.boxv3.position.x)
+    var box_y = 0.5 * (world_objs.boxv1.position.y + world_objs.boxv3.position.y)
+    var orient = box_orientation(world_objs)
+
+    var is_orient_left = vdot(orient, [-1.0, 0.0])
+
+    return 1 / 3 * (soft_in_rng(box_x,B.box_down_x) + soft_in_rng(box_y, [B.box_yy - 10, B.box_yy + 10]) + is_orient_left)
+  }
+
   return B
 }
 
@@ -157,10 +172,44 @@ function Cbar() {
     var mus2_ll = world_objs.arm_mus2.length
 
     var hand_box_dist = Math.abs(hand_x - boxv4_x) + Math.abs(hand_y - boxv4_y)
-    var mus_dist = Math.abs(mus1_ll - mus1_l) + Math.abs(mus2_ll - mus2_l)
+    // var mus_dist = Math.abs(mus1_ll - mus1_l) + Math.abs(mus2_ll - mus2_l)
+    return hand_box_dist  < 10
+  }
 
-    return hand_box_dist + mus_dist  < 20
+  C.softchecks = function(world_objs) {
+    var hand_x = world_objs.arm_hand.position.x
+    var hand_y = world_objs.arm_hand.position.y
+    var boxv4_x = world_objs.boxv4.position.x
+    var boxv4_y = world_objs.boxv4.position.y
+
+    var mus1_ll = world_objs.arm_mus1.length
+    var mus2_ll = world_objs.arm_mus2.length
+
+    var hand_box_dist = Math.abs(hand_x - boxv4_x) + Math.abs(hand_y - boxv4_y)
+    // var mus_dist = Math.abs(mus1_ll - mus1_l) + Math.abs(mus2_ll - mus2_l)
+    return 1.0 / (Math.max(0.0, hand_box_dist-10) + 1.0)
   }
 
   return C
 }
+
+// function Cbar() {
+//   var C = {}
+
+//   C.checks = function(world_objs) {
+//     var hand_x = world_objs.arm_hand.position.x
+//     var hand_y = world_objs.arm_hand.position.y
+//     var boxv4_x = world_objs.boxv4.position.x
+//     var boxv4_y = world_objs.boxv4.position.y
+
+//     var mus1_ll = world_objs.arm_mus1.length
+//     var mus2_ll = world_objs.arm_mus2.length
+
+//     var hand_box_dist = Math.abs(hand_x - boxv4_x) + Math.abs(hand_y - boxv4_y)
+//     var mus_dist = Math.abs(mus1_ll - mus1_l) + Math.abs(mus2_ll - mus2_l)
+
+//     return hand_box_dist + mus_dist  < 20
+//   }
+
+//   return C
+// }

@@ -89,7 +89,7 @@ function simulate_and_render(abs_state_start, controller, abs_state_end, timeout
   // to act based on the current simulation state
   Events.on(engine, 'afterUpdate', function() {
     console.log(abs_state_end.checks(world_objs))
-    controller.act(world_objs, abs_state_start, abs_state_end)
+    controller.act(world_objs)
   });
   animate(controller, timeout, terminate_on_ctrl, term_callback)
 }
@@ -128,7 +128,7 @@ function simulate$(world_objs, controller, pre, post, timeout) {
   // bind 'afterUpdate' event to call the controller at every update
   // to act based on the current simulation state
   Events.on(engine, 'afterUpdate', function() {
-    controller.act(world_objs, pre, post)
+    controller.act(world_objs)
   });
 
   // simulate the world w/o rendering in a loop
@@ -162,26 +162,51 @@ function Start() {
   // console.log(all_static(concA.world_objs))
 
   // console.log(A.concretize())
-  var f_AB = make_fAB([0.2, 100, 0.3, 400])
-  var f_BC = make_fBC([0.3, 100, 0.3, 400])
-
+  var f_AB = make_fAB([0.2, 100, 0.3, 400], A, B)
+  var f_BC = make_fBC([0.3, 100, 0.3, 400], B, C)
+  
 
   $("#stateA").click( function() {
-    var bess = learn_controller(A, make_fAB, B, [0.0, 100, 0.0, 100], [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[0, 500]], 20)
-    simulate_and_render(A, make_fAB(bess), B, 8000, true, function(){})
+    // var bess = learn_controller(A, make_fAB, B, [0.0, 100, 0.0, 100], [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[0, 500]], 20)
+    var post_theta = learn_post(A, f_AB, Bbar, [100, 100], [[0, 500], [0, 500]], 20)
+    console.log(post_theta)
+    simulate_and_render(A, f_AB, Bbar(post_theta), 8000, true, function(){})
   });
 
   $("#stateB").click( function() {
-    var bess = learn_pre(Bbar, f_BC, C, [100, 100], [[0, 500], [0, 500]], 20)
+    var bess = learn_pre(Bbar, f_BC, C, [100, 100], [[0, 800], [0, 800]], 20)
     simulate_and_render(Bbar(bess), f_BC, C, 8000, true, function(){})
     // simulate_and_render(B, f_BC, C, 8000, true, function(){})
   });
 
   $("#stateC").click( function() {
-    simulate_and_render(C, null_ctrl, 10000, false, function(){})
+    var post_ctrl = proj_Bf(A, make_fAB, Bbar, 
+               [0.0, 100, 0.0, 100], [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[0, 500]], 
+               [200, 600], [[200, 600], [200, 600]], 20)
+    var postt = post_ctrl[0]
+    var ctrll = post_ctrl[1]
+    console.log(postt, ctrll)
+    // simulate_and_render(A, make_fAB(ctrll), Bbar(postt), 8000, true, function(){})
+    $("#show").click( function() {
+      simulate_and_render(A, make_fAB(ctrll, A, Bbar(postt)), Bbar(postt), 8000, true, function(){})
+    })
   });
   $("#stateD").click( function() {
-    simulate_and_render(D, null_ctrl, 10000, false, function(){})
+    var pre_ctrl = proj_Bg(Bbar, make_fBC, C, 
+               [0.0, 100, 0.0, 100], [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[0, 500]], 
+  //             [0.3, 100, 0.3, 400], [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[0, 500]], 
+               [200, 600], [[200, 600], [200, 600]], 40)
+    var pree = pre_ctrl[0]
+    var ctrll = pre_ctrl[1]
+    console.log(pree, ctrll)
+    $("#show").click( function() {
+      simulate_and_render(Bbar(pree), make_fBC(ctrll, Bbar(pree), Cbar()), Cbar(), 8000, true, function(){})
+    })
   });
+  $("#show").click( function() {
+    var composed = make_compose(f_AB, f_BC, A, B, C)
+    simulate_and_render(A, composed, C, 8000, true, function(){})
+  });
+
 }
 
