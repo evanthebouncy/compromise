@@ -84,7 +84,7 @@ function make_fAB(theta, A, B) {
     },
     act : function(world_objs) {
       if (! has_put){
-        var target_x = (B.box_down_x[0] + B.box_down_x[1]) * 0.5
+        var target_x = randR(B.box_down_x[0], B.box_down_x[1])
         // var target_y = B.box_yy
         var l1 = target_x * theta[0] + theta[1]
         var l2 = target_x * theta[2] + theta[3]
@@ -153,6 +153,7 @@ function make_compose(ctrl1, ctrl2, A, B, C) {
       if (! ctrl1.terminate(1)) {
         ctrl1.act(world_objs)
       } else {
+        console.log(B.checks(world_objs))
         ctrl2.act(world_objs)
       }
     },

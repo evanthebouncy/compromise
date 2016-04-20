@@ -84,6 +84,7 @@ function randomreal(min, max) {
 
 // update the range (binary search style) to half including the good point
 function get_half_range(score, good_point, range) {
+  score = 0.5
   ret = []
   for (var i = 0; i < good_point.length; i++) {
     var ptpt = good_point[i]

@@ -46,10 +46,10 @@ function generate_box$(world_objs, box_x, box_y, box_dir){
   vec_v2 = vadd([box_x, box_y], vscale([normalized_dir[1], -normalized_dir[0]], lll))
   vec_v4 = vadd([box_x, box_y], vscale([normalized_dir[1], -normalized_dir[0]], -1 * lll))
 
-  world_objs.boxv1 = Bodies.rectangle(vec_v1[0], vec_v1[1], 5, 5, {density: 0.001})
-  world_objs.boxv2 = Bodies.rectangle(vec_v2[0], vec_v2[1], 5, 5, {density: 0.001})
-  world_objs.boxv3 = Bodies.rectangle(vec_v3[0], vec_v3[1], 5, 5, {density: 0.001})
-  world_objs.boxv4 = Bodies.rectangle(vec_v4[0], vec_v4[1], 5, 5, {density: 0.001})
+  world_objs.boxv1 = Bodies.rectangle(vec_v1[0], vec_v1[1], 8, 8, {density: 0.001})
+  world_objs.boxv2 = Bodies.rectangle(vec_v2[0], vec_v2[1], 8, 8, {density: 0.001})
+  world_objs.boxv3 = Bodies.rectangle(vec_v3[0], vec_v3[1], 8, 8, {density: 0.001})
+  world_objs.boxv4 = Bodies.rectangle(vec_v4[0], vec_v4[1], 8, 8, {density: 0.001})
   world_objs.boxc1 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv2})
   world_objs.boxc2 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv3})
   world_objs.boxc3 = Constraint.create({bodyA: world_objs.boxv1, bodyB: world_objs.boxv4})
@@ -129,16 +129,21 @@ function Bbar(box_down_x) {
 
     var lll = Math.sqrt(Math.pow(60, 2) * 2) / 2
     generate_box$(world_objs, box_xx, box_yy, [-1,-1])
-
     return world_objs
   }
 
   B.checks = function(world_objs){
+    // console.log("fuck man")
     var box_x = 0.5 * (world_objs.boxv1.position.x + world_objs.boxv3.position.x)
     var box_y = 0.5 * (world_objs.boxv1.position.y + world_objs.boxv3.position.y)
     var orient = box_orientation(world_objs)
 
     var is_orient_left = vdot(orient, [-1.0, 0.0])
+    // console.log( B.box_down_x[0] <= box_x ,
+    //        B.box_down_x[1] >= box_x ,
+    //        Math.abs(B.box_yy - box_y) < 10 ,
+    //        is_orient_left > 0.95 )
+
     return B.box_down_x[0] <= box_x &
            B.box_down_x[1] >= box_x &
            Math.abs(B.box_yy - box_y) < 10 &
@@ -150,9 +155,9 @@ function Bbar(box_down_x) {
     var box_y = 0.5 * (world_objs.boxv1.position.y + world_objs.boxv3.position.y)
     var orient = box_orientation(world_objs)
 
-    var is_orient_left = vdot(orient, [-1.0, 0.0])
+    var is_orient_left = Math.max(vdot(orient, [-1.0, 0.0]), 0.0)
 
-    return 1 / 3 * (soft_in_rng(box_x,B.box_down_x) + soft_in_rng(box_y, [B.box_yy - 10, B.box_yy + 10]) + is_orient_left)
+    return soft_in_rng(box_x,B.box_down_x) * soft_in_rng(box_y, [B.box_yy - 10, B.box_yy + 10]) * is_orient_left
   }
 
   return B
