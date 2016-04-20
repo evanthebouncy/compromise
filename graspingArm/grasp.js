@@ -167,8 +167,8 @@ function Start() {
   // some ranges for the variables
   var init_ctrl_param = [0.0, 0, 0.0, 250] 
   var ctrl_range = [[-0.5, 0.5],[0, 500],[-0.5, 0.5],[250, 500]]
-  var init_b_param = [300, 500] 
-  var b_range = [[200, 600], [200, 600]]
+  var init_b_param = [300, 200] 
+  var b_range = [[100, 600], [0, 100]]
   var iter_num = 20  
 
   // initialize states and controllers
@@ -201,7 +201,7 @@ function Start() {
   $("#stateC").click( function() {
     var post_ctrl = proj_Bf(A, make_fAB, Bbar, 
                fab_param, ctrl_range, 
-               b_param, b_range, iter_num)
+               b_param, b_range, iter_num, 1.0)
     var postt = post_ctrl[0]
     var ctrll = post_ctrl[1]
     b_param = postt
@@ -211,7 +211,7 @@ function Start() {
   $("#stateD").click( function() {
     var pre_ctrl = proj_Bg(Bbar, make_fBC, C, 
                fbc_param, ctrl_range, 
-               b_param, b_range, iter_num)
+               b_param, b_range, iter_num, 1.0)
     var pree = pre_ctrl[0]
     var ctrll = pre_ctrl[1]
     b_param = pree

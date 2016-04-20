@@ -106,7 +106,12 @@ function Abar() {
 
 // abstr state space for B
 // hand down box down, vertex 1 on left
-function Bbar(box_down_x) {
+function Bbar(x_pos_rangee) {
+  var x_pos = x_pos_rangee[0]
+  var rangee = x_pos_rangee[1]
+
+  // console.log(x_pos, rangee)
+  var box_down_x = [x_pos, x_pos + rangee]
   if (box_down_x[0] > box_down_x[1]) {
     var swp = box_down_x[0]
     box_down_x[0] = box_down_x[1]
@@ -178,7 +183,7 @@ function Cbar() {
 
     var hand_box_dist = Math.abs(hand_x - boxv4_x) + Math.abs(hand_y - boxv4_y)
     // var mus_dist = Math.abs(mus1_ll - mus1_l) + Math.abs(mus2_ll - mus2_l)
-    return hand_box_dist  < 10
+    return hand_box_dist  < 18
   }
 
   C.softchecks = function(world_objs) {
@@ -192,7 +197,7 @@ function Cbar() {
 
     var hand_box_dist = Math.abs(hand_x - boxv4_x) + Math.abs(hand_y - boxv4_y)
     // var mus_dist = Math.abs(mus1_ll - mus1_l) + Math.abs(mus2_ll - mus2_l)
-    return 1.0 / (Math.max(0.0, hand_box_dist-10) + 1.0)
+    return 1.0 / (Math.max(0.0, hand_box_dist-18) + 1.0)
   }
 
   return C

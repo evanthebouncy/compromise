@@ -122,13 +122,17 @@ function make_fBC(theta, B, C) {
     has_term : false,
     act : function(world_objs) {
       if (! has_pick){
-        var target_x = box_position(world_objs)[0]
+        var target_x = B.box_down_x[1]
+        // var target_x = box_position(world_objs)[0]
+
         // var target_y = B.box_yy
-        var l1 = target_x * theta[0] + theta[1]
-        var l2 = target_x * theta[2] + theta[3]
+        // var l1 = target_x * theta[0] + theta[1]
+        // var l2 = target_x * theta[2] + theta[3]
+        var l1 = theta[1]
+        var l2 = theta[3]
         var arm_is_set = set_arm$(world_objs, l1, l2)
-        if (arm_is_set) {
-          grasp$ (world_objs)
+        grasp$ (world_objs)
+        if (arm_is_set || world_objs.grasp != null) {
           has_pick = true
           has_term = true
         }

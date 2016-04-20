@@ -69,6 +69,10 @@ function mag(v) {
   return Math.sqrt(ret)
 }
 
+function vdist(x, y) {
+  return mag(vsub(x, y))
+}
+
 function fitness_sort_fun(a, b) {
   if (a[0] === b[0]) {
       return 0;
